@@ -110,6 +110,7 @@ If you have any questions, bugs to report or suggestions, feel free to post an i
 ## Authors
 
 Maxime Godfroid
+
 Guillaume Achaz
 
 ## References
@@ -117,5 +118,3 @@ Guillaume Achaz
 Behdenna A et al. 2016. Testing for Independence between Evolutionary Processes. Syst Biol. 65:812–823. doi: 10.1093/sysbio/syw004.
 
 Behdenna A, Godfroid M et al. 2021. A minimal yet flexible likelihood framework to assess correlated evolution. bioRxiv. 2020.09.04.282954. doi: 10.1101/2020.09.04.282954.
-
-Godfroid et al., In prep
