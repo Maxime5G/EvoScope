@@ -133,7 +133,7 @@ double * ComputeLikelihoodDistribution(struct Trees *MyForest, int ntrees, int i
 char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput);
 char ** createEventsArray(char * myFname);
 int ** createArrayEventsToRun(char *MyInputName, int *fileLength, int verbose);
-EventsArray *createArrayEventsToRun2(char *MyInputName, int *fileLength, int verbose);
+EventsArray *createArrayEventsToRunEpics(char *MyInputName, int verbose);
 
 int isDuplicate(int number1, int number2, int **storedArray, int lastPosition);
 

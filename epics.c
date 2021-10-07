@@ -301,7 +301,6 @@ int main( int argc , char **argv)
 	char *input_events_file=NULL;		/* pointer to open input event to run */
 	// int **input_events=NULL;			/* array of events to run */
 	EventsArray *input_events=NULL;
-	int filelength=0;					/* length of the array of events to run */
 
 	char output_prefix[1000]="out"; /* default output prefix           */
 
@@ -549,22 +548,12 @@ int main( int argc , char **argv)
     }
 
 	/* Verifying if the user gave an input file of significant events to run. If yes, store the events */
-	/* in an nx2 array. */
-	// printf("here\n");
-	if (input_events_file){
-		input_events = createArrayEventsToRun2(input_events_file, &filelength, verbose); 		/* if -R chosen, creates the array of event ids to run. */
-		// printf("here2\n");
+	/* in an EventsArray struct. */
 
-		// printf("input_events->length=%d\n", input_events->length);
-		// printf("size=%d\n", input_events->e2L[0]);
-		// printf("sizeof(inpe2[0])=%lu\n", sizeof(input_events->inpe2[0]));
-		// printf("sizeof(inpe2[0][0])=%lu\n", sizeof(input_events->inpe2[0][0]));
-		// for (int w=0; w<input_events->length; w++){
-			// printf("e1[%d]=%d\n", w, input_events->e1[w]);
-		// }
+	if (input_events_file){
+		input_events = createArrayEventsToRunEpics(input_events_file, verbose); 		/* if -R chosen, creates the array of event ids to run. */
 	}
 
-	// exit(1);
 	/* for each pair of the nevt*(nevt-1)/2 event vectors */
 	ldistrib = 0;
 	max_ldistrib = 0;
@@ -580,8 +569,6 @@ int main( int argc , char **argv)
 	 	cntj=0;
 
 	/* --- MAIN LOOP --- */
-	// if (input_events_file)
-		// nevt = input_events->length;
 
 	for (i = 0; i < nevt; i++) {
 
@@ -595,17 +582,11 @@ int main( int argc , char **argv)
 
 		if ((choice_e1 && choice_e2) && (choice_e1!=i+1 && choice_e2!=i+1)) continue;
 
-
-		// if (input_events_file)
-			// nevt2 = input_events->e2L[i];
-
-		// printf("nevt2=%d\n", nevt2);
   		for (j = 0; j < nevt; j++) {
 
 			if (input_events_file){
 				if ((j+1) != input_events->inpe2[cnti][cntj]) continue;
 			}
-			// cntj++;
 
   			if(i==j) continue;
 

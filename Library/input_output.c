@@ -945,7 +945,7 @@ char ** createEventsArray(char * myFname){
 /* asymmetrical e1xe2 array for each event to run against each e1	*/
 /* I also have a vector e2L containing the lengths of each e2		*/
 
-EventsArray *createArrayEventsToRun2(char *MyInputName, int *fileLength, int verbose){
+EventsArray *createArrayEventsToRunEpics(char *MyInputName, int verbose){
 
 	EventsArray *outArray;
 	outArray = (EventsArray*) malloc(sizeof(EventsArray));
@@ -974,13 +974,11 @@ EventsArray *createArrayEventsToRun2(char *MyInputName, int *fileLength, int ver
 				if(fgets(line, 128, f) == NULL){
 					break;
 				}
-				// *fileLength += 1;
 				sscanf(line, "%d%d", &n1, &n2);
 			}
 			fsetpos(f, &position);
 			outArray->length++;
 		}
-		// *fileLength += 1;
 	}
 
 	rewind(f);
