@@ -308,9 +308,6 @@ int main( int argc , char **argv)
 			outgroup = argv[optind+0];
 	}
 
-	if (argc==1)
-		fprintf(stderr, "Usage: ./epocs [options] outgroup [tree_file]\nor:    ./epocs [options] all_trees_file\nfor more help ./epocs -h\n"), exit(2);
-
 	/*
 		Retrieving the tree informations. The ParseInputForest reads the tree or the treefile and determines whether we have
 		a forest, multiple independent trees or a single newick tree. All informations are stored in a Trees structure
