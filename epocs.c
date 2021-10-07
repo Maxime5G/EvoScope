@@ -279,6 +279,9 @@ int main( int argc , char **argv)
 
    }
 
+   if(argc == 1)
+	   fprintf(stderr, "Usage: ./epocs [options] outgroup [tree_file]\nfor more help ./epocs -h\n"), exit(2);
+
    /* ---------------------------------------------------------------------------------------------- */
    /* Check that, if the user chose events to run, e1 < e2 (given the loop) 	  	 		  		  */
    /* This also verifies that if the user mistakenly input -2 only, choice_e2 is copied to choice_e1 */
