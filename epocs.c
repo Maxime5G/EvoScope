@@ -166,18 +166,16 @@ int main( int argc , char **argv)
 	int nbleaves=0,
 		i, j,
 	    nevt=-1,
-	    veryverbose = 0,
 	    carg,
 	    evti,
 	    evtj,
 	    output_tree = 0,    /*1= in newick, 2=in ascii*/
 	    output_newick = 0,
 	    output_state_vector = 0,
-	    min_m1qn3 = 0,
 		choice_e1=0,			/* if the user wants to input a particular event to test - e1 */
 		choice_e2=0,			/* if the user wants to input a particular event to test - e2 */
-		ntree=1,				/*	the number of trees in input	*/
-		t,						/*	the tree counter				*/
+		ntree=1,				/* the number of trees in input	*/
+		t,						/* the tree counter				*/
 		f,						/* the forest counter	*/
 		forkmax=10;				/* maximum number of forks allowed	*/
 
@@ -242,10 +240,6 @@ int main( int argc , char **argv)
 
 			case 'e':
 		   		output_state_vector = 1;
-		   		break;
-
-			case 'm':						 /* what is it used for? */
-		   		min_m1qn3 = 1;
 		   		break;
 
 			case 't':
