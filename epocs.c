@@ -169,6 +169,7 @@ int main( int argc , char **argv)
 	    carg,
 	    evti,
 	    evtj,
+		veryverbose=0,
 	    output_tree = 0,    /*1= in newick, 2=in ascii*/
 	    output_newick = 0,
 	    output_state_vector = 0,
