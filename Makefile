@@ -56,10 +56,10 @@ $(LIBDIR)/$(LIBTREE):
 	cd Library; make
 
 epics: $(EPICSSRC) $(LIBDIR)/$(LIBTREE)
-	$(CC) $(CFLAGS) -D$(MACHINE) $(LIBDIR)/$(LIBTREE)  -o $@ $< -lm;
+	$(CC) $(CFLAGS) -D$(MACHINE)  -o $@ $< $(LIBDIR)/$(LIBTREE) -lm;
 
 epocs: $(EPOCSSRC) $(LIBDIR)/$(LIBTREE)
-	$(CC) $(CFLAGS) -D$(MACHINE) $(LIBDIR)/$(LIBTREE) -o $@ $< -lm;
+	$(CC) $(CFLAGS) -D$(MACHINE) -o $@ $< $(LIBDIR)/$(LIBTREE) -lm;
 
 %.o: %.c
 	$(CC) $(CFLAGS) -D$(MACHINE) -I$(LIBINCDIR) -c -o $@ $< -lm;
