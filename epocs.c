@@ -161,7 +161,7 @@ int main( int argc , char **argv)
 
 	double maxrate=0.0;
 
-	extern int verbose;
+	// extern int verbose;
 
 	int nbleaves=0,
 		i, j,

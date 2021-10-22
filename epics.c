@@ -260,7 +260,7 @@ int main( int argc , char **argv)
 {
    int nevt=-1,
        i, j, k,
-       verbose = 0,
+       // verbose = 0,
        carg,
 	   *veck=NULL,
 	   *nveck=NULL,
@@ -328,6 +328,7 @@ int main( int argc , char **argv)
 	/* default parameters	*/
 	mat_type = 1;	/* matrice is chronology	*/
 	mat_name = "S";
+	verbose = 0;
 
 	/* -- recursive gathering of command line arguments -- */
 	while ((carg = getopt(argc, argv, "1:2:0IBAPXMNSVT:E:C:O:R:abdehms:tvf:")) != -1) {
