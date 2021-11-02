@@ -161,7 +161,7 @@ int main( int argc , char **argv)
 
 	double maxrate=0.0;
 
-	// extern int verbose;
+	int verbose=0;
 
 	int nbleaves=0,
 		i, j,
@@ -184,7 +184,6 @@ int main( int argc , char **argv)
 	int *forestntree=NULL;
 
 	double rate[2][4];
-	verbose=0;
 
 	/*
 		Recursive catching of command line arguments

@@ -8,6 +8,8 @@
 #include <sys/stat.h> 		/* for the creation of directories and files */
 #include <sys/types.h> 		/* for the creation of directories and files */
 
+// extern int verbose;
+
 /**
 \file 	input_output.c
 \brief 	initialization, input and output options for epics and epocs
@@ -378,7 +380,7 @@ void Read_Coevol_InForest_Data( struct CoevolData *MyCoevolData, int t, char *ne
 	MyCoevolData[t].nbranches=0;
 	MyCoevolData[t].longestbranch=0;
 
-	MyCoevolData[t].tree = read_tree_forest( newick_string, &(MyCoevolData[t].nbleaves_tot), outgroup );
+	MyCoevolData[t].tree = read_tree_forest( newick_string, &(MyCoevolData[t].nbleaves_tot), outgroup, verbose );
 	MyCoevolData[t].root = SetRootEpics( MyCoevolData[t].tree, outgroup, verbose );
 
 	MyCoevolData[t].root->anc=NULL;

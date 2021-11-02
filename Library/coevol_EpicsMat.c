@@ -16,6 +16,8 @@
 
 #define MAXTIME 180 /* to terminate the multinomial if it takes more than half an hour (1800) */
 
+// extern int verbose;
+
 /*-------------------------------------------------------*/
 /* statiques						*/
 /*-------------------------------------------------------*/

@@ -9,7 +9,7 @@
 #define MIN_GRAD 1e-7
 #define MIN_C 1e-4
 
-int verbose;
+extern int verbose;
 
 /* PART1: Objects initializations and input manipulations (input_output.c) */
 

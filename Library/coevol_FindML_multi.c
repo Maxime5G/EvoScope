@@ -8,6 +8,8 @@
 #define EPSILON 0.001
 #include <time.h>
 
+int verbose;
+
 double Gauss_multi( double *X, struct CoevolData *MyEpocsData, int IS[], int ntree ){
 
 	return exp(- (X[0]*X[0] + X[1]*X[1] + X[2]*X[2]) );

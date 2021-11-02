@@ -66,7 +66,7 @@ char **readFileMultiNewick(char *treefile, int opt_read_stdin, int **nbleaves, i
 int lit_newickmyMulti(char *chaine,int la_pos,int *which_node, Node *myNodes);     /* from a string to the structure */
 void clean_end(char *str);														   /* removes last value if exists*/
 Node *read_tree( char * treefile, int opt_read_stdin, int *nbleaves, char *outgroup ); /* read a tree from the stdin or from a file	*/
-Node *read_tree_forest( char * newick_string, int *nbleaves, char *outgroup ); /* read a tree from a newick string	*/
+Node *read_tree_forest( char * newick_string, int *nbleaves, char *outgroup, int verbose ); /* read a tree from a newick string	*/
 
 /*
 	Ouput Tree
@@ -99,7 +99,7 @@ int count_branches(Node *n);
 void set_e1_vectors(Node *n, int **e1);
 void set_e1_vectors_mask(Node *n, int **e1, char **mask);
 
-double *ComputeBranchLengths( Node *root, int nbranches, int output_branch_probas, double *total_length_all_tree, int t, int runIsEpics);				// compute branch lengths
+double *ComputeBranchLengths( Node *root, int nbranches, int verbose, double *total_length_all_tree, int t, int runIsEpics);				// compute branch lengths
 void SetMinimumBranchLength( Node *n, double min_length );   // set all <= min_length to min_length
 void NormalizeTree( Node *n, double Ltot );                  // normalize tree to 1
 void NormalizeTreeAndLongestBranch( Node *n, double Ltot, double *longest);	// normalize to 1 and extract the longest branch

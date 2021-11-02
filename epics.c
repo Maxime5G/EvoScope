@@ -84,7 +84,7 @@ void Init_veck_distrib( int nclasses, int *nclassmax, int **nveck, int ldistrib,
 /* This function will go through each tree and each event and calculate the cumulative  	 */
 /* sum of all mutations to retrieve the maximum number of factorials to compute later on. 	 */
 /* Next - check comment below.																 */
-void InitFacto( int nevt, int ntree, struct CoevolData *MyEpicsData){
+void InitFacto( int nevt, int ntree, struct CoevolData *MyEpicsData, int verbose){
 
 	/* To calculate the first n factorials. */
 	int nmax = 0;
@@ -260,7 +260,7 @@ int main( int argc , char **argv)
 {
    int nevt=-1,
        i, j, k,
-       // verbose = 0,
+       verbose = 0,
        carg,
 	   *veck=NULL,
 	   *nveck=NULL,
@@ -497,7 +497,7 @@ int main( int argc , char **argv)
     /* ---------------------------------------------------------------------------------------------- */
 
 	/* Initializing the factorial distribution - stored in slnFacto	*/
-	InitFacto( nevt, ntree, MyTrees[0].MyCoevolData);
+	InitFacto( nevt, ntree, MyTrees[0].MyCoevolData, verbose);
 	/* print the tree on stdout (without outgroup) */
 	if ( verbose ) {
 		for (f=0; f<maxforest; f++){

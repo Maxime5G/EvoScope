@@ -38,6 +38,8 @@
 #include "tree.h"
 #include "coevol.h"
 
+// extern int verbose;
+
 /**
 \fn *read_tree_forest
 \brief read a newick string and return the tree
@@ -47,7 +49,7 @@
 \param outgroup: outgroup of tree(s)
 **/
 
-Node *read_tree_forest( char * newick_string, int *nbleaves, char *outgroup )
+Node *read_tree_forest( char * newick_string, int *nbleaves, char *outgroup, int verbose)
 {
 
 	Node *init_tree,
@@ -678,7 +680,7 @@ void FreeMultiTree(struct mymultinode *myNodes, int nleaves)
 /* If runIsEpics, the branch lengths are normalized to sum to 1 (i.e. every branch is 		*/
 /* divided by the total branch length).    													*/
 
-double *ComputeBranchLengths( Node *root, int nbranches, int output_branch_probas, double *total_length_all_tree, int t, int runIsEpics){
+double *ComputeBranchLengths( Node *root, int nbranches, int verbose, double *total_length_all_tree, int t, int runIsEpics){
 
 	double total_length;
  	IntegerMatrix *mateve=NULL;
@@ -713,17 +715,17 @@ double *ComputeBranchLengths( Node *root, int nbranches, int output_branch_proba
 		pval = 0.0L;
 		for (i = 0 ; i < nbranches; i++) {
 
-	  		if (output_branch_probas) fprintf(stderr, "branch %3d length=%g ",i,branch_lengths[i]);
+	  		if (verbose) fprintf(stderr, "branch %3d length=%g ",i,branch_lengths[i]);
 
 	  		branch_lengths[i] /= total_length;
 
-	  		if (output_branch_probas) fprintf(stderr, "proba=%g\n",branch_lengths[i]);
+	  		if (verbose) fprintf(stderr, "proba=%g\n",branch_lengths[i]);
 
 			pval+=branch_lengths[i];
 
 		}
 
-		if (output_branch_probas) fprintf(stderr, "Sum of probabilities of branches: %g\n",pval);
+		if (verbose) fprintf(stderr, "Sum of probabilities of branches: %g\n",pval);
 	}
 
 	FreeIntegerMatrix(mateve);

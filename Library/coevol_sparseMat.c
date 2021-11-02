@@ -14,6 +14,8 @@
 #include "tree.h"
 #include "coevol.h"
 
+// extern int verbose;
+
 /* ------------------------------------------------------------------------------------------ */
 /* Convert an existing matrix (struct IntegerMatrix) into sparse format.    				  */
 /* The sparse format follows the Yale convention and is implemented in the  				  */

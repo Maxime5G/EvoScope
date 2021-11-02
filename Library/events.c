@@ -33,6 +33,7 @@
 #include "tree.h"
 #include "coevol.h"
 
+// extern int verbose;
 
 /* ----------------------------------------------------------------------------	*/
 /* compte les evenements a partir du noeud n					*/
