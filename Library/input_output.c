@@ -861,6 +861,71 @@ char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput){
 
 	switch(whichOutput){
 		case 0:
+			sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, scen);
+			break;
+
+		case 1:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 2:
+			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 3:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 4:
+			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 5:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s_forest.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 6:
+			sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, scen);
+			break;
+
+		default:
+			fprintf(stderr, "initializeNewFile -> option:<%d> unknown... exiting", whichOutput);
+			exit(1);
+	}
+    return MyOutputName;
+
+}
+
+char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput){
+
+    static char MyOutputName[1000]="";
+	char *basename;
+	char cond=1;
+
+    struct stat st = {0};
+
+	if (strrchr(pref, '/')){
+		cond=0;
+		basename=strrchr(pref, '/')+1;
+	}
+
+	/* I'm checking whether the output folder exists 			 */
+	/* if no, I'm creating it so that I can create a file inside */
+    if (stat(pref, &st) == -1) {
+        mkdir(pref, 0700);
+    }
+
+	// switch on whichOutput
+	// 0 = epocs output file
+	// 1 = epics output file
+	// 2 = epics output file - only significant pairs
+	// 3 = epics output file - multi tree results
+	// 4 = epics output file - multi tree results - significant pairs
+	// 5 = epics output file - summary of forest output
+	// 6 = epocs output file - summary of forest output
+
+	switch(whichOutput){
+		case 0:
 			if (scen >= 'a' && scen <= 'z')
 		    	sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c.tab", pref, cond?pref:basename, scen, scen);
 			else
