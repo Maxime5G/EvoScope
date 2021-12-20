@@ -418,11 +418,11 @@ int main( int argc , char **argv)
 				output_newick = 1;	/* outputs a newick tree with events which pval > 0.05,  readable by NJPlot e.g.	*/
 				break;
 
-			case 'T':	/* threshold of p-value to output event pairs 	*/
+			case 'T':	/* threshold of p-value to discriminate significant event pairs 	*/
 				if (sscanf(optarg, "%lf", &(seuil_pval)) != 1) {
-					fprintf(stderr,"Cannot read threshold of p-value to output pairs (reading %s (?))\n",optarg);
-					fprintf(stderr,"    setting it to 1.0 (output all pairs)\n");
-					seuil_pval = 1.0L;
+					fprintf(stderr,"Cannot read threshold of p-value to determine significant pairs (reading %s (?))\n",optarg);
+					fprintf(stderr,"    setting it to 0.05 (output all significant pairs with p-value <= 0.05)\n");
+					seuil_pval = 0.05L;
 				}
 				break;
 
