@@ -45,7 +45,10 @@ sparseMatrix *convertToSparseMatrix(int nrow, IntegerMatrix *input_mat){
 	}
 
 	/* non-zeroes elements of the matrix. Since elements are only 1 or 0, it is the cumulative sum of the elements. */
-	nnz=sumv(input_mat->val, input_mat->nrow*input_mat->ncol);
+	// nnz=sumv(input_mat->val, input_mat->nrow*input_mat->ncol);
+
+	/* in the case of masking, negative values have to be recorder as well: nnzv does that */
+	nnz=nnzv(input_mat->val, input_mat->nrow*input_mat->ncol);
 
 	m->row=calloc(nnz, sizeof(int)*nnz);				/* the ROW vector 						   */
 	m->col=calloc(nrow+1, sizeof(int)*nrow+1);	/* the COL vector, initialized with zeroes */
@@ -89,6 +92,22 @@ void vectSparseMat (int *v, sparseMatrix *m, int lv, int *pv){
 		pv[i]=0;
 		for (j=m->col[i]; j<m->col[i+1]; j++){	/* The indices of the nnz elements are retrieved by splicing COL */
 			pv[i]+=v[m->row[j]];				/* The values corresponding in the vectors are summed together   */
+		}
+	}
+	return;
+}
+
+void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask){
+	int i, j; /* i=columns, j=rows */
+
+	/* lv is the length of the vector, which is also the	*/
+	/* number of rows and columns of the matrix 			*/
+
+	for (i=0; i<lv; i++){						/* For each column/row 											 */
+		pv[i]=0;
+		for (j=m->col[i]; j<m->col[i+1]; j++){	/* The indices of the nnz elements are retrieved by splicing COL */
+			printf("index = %d value = %d mask value = %d\n", m->row[j], v[m->row[j]], mask[m->row[j]]);
+			pv[i]+=v[m->row[j]] * mask[m->row[j]];				/* The values corresponding in the vectors are summed together   */
 		}
 	}
 	return;

@@ -174,6 +174,7 @@ void transpose_a_matrix_antidiagonal(IntegerMatrix *mat);
 IntegerMatrix * chrono_excl(Node *n, int nbranches);
 void print_matrice(IntegerMatrix *m, FILE *f);
 int sumv(int *v, int lv);
+int nnzv(int *v, int lv);
 int iprodsca(int *u, int *v, int l);
 void vectmat(int *v, IntegerMatrix *m, int *pv);
 void init_sTableau(int t);
@@ -191,7 +192,7 @@ void free_slnFacto(void);
 int *SetEvents( Node *root, int *Nevts, int verbose );
 IntegerMatrix *SetMatrix( int mat_type, int nbranches, Node *root, int output_mat );
 int **InitEvents( Node *root, int nbranches, int nevt, int mat_type, int **e1M, int output_vectors );
-int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, int **e1M, char **mask, int output_vectors);
+int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, int **e1M, char ***mask, int output_vectors);
 
 /* partie multinomiale */
 void set_vect_classes(int *e1m, int *e2, int nbranches, int *nclasses, int **ne1m, int **ne2, double *proba, double **nproba, int t);
@@ -207,6 +208,7 @@ void generate_approached_multinomial(int *veck, double *vproba, int lveck, int s
 
 sparseMatrix *convertToSparseMatrix(int nrow, IntegerMatrix *input_mat);
 void vectSparseMat (int *v, sparseMatrix *m, int lv, int *pv);
+void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask);
 void print_sparse_matrix(sparseMatrix *m, FILE *f);
 
 #endif

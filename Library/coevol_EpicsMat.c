@@ -73,6 +73,24 @@ int sumv(int *v, int lv)
 
 }
 
+/*-------------------------------------------------------	*/
+/* returns the number of nnz elements of the integer        */
+/* vector v of length lv                                    */
+/*-------------------------------------------------------	*/
+
+int nnzv(int *v, int lv)
+{
+    int i, sum = 0;
+
+   for ( i = 0; i < lv; i++){
+       if (v[i]!=0)
+            sum+=v[i];
+    }
+
+    return sum;
+
+}
+
 /* ------------------------------------------------------------ */
 /* prints an integer vector v of length l in file f			    */
 /* ------------------------------------------------------------ */
@@ -779,16 +797,6 @@ void generate_multinomial(int *veck, double *vproba, int lveck, int sum_e2, int 
 	}
 	return;
 }
-
-/*------------------------------------------------------------------------------------*/
-/* new version of multinomial: approached multinomial.								  */
-/* the form of the multinomial is entirely via logarithms. 							  */
-/* the formula is therefore: lnFacto[#e2] + SUM (log(ni)+log(Pi)) - SUM (lnFacto(ni)) */
-/* the idea is to generate random placement of numbers in the multinomial categories  */
-/* because sometimes, the recursion is too large to handle. Hence, if we generate	  */
-/* enough random vectors, we can "approach" the multinomial distribution */
-/* at the end, I need to normalize the resulting vector such that it sums to 1 */
-/*------------------------------------------------------------------------------------*/
 
 /* normalize a vector of length lv */
 void normalize_a_vector (double *v, int lv){
