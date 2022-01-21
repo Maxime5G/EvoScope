@@ -106,7 +106,11 @@ void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask)
 	for (i=0; i<lv; i++){						/* For each column/row 											 */
 		pv[i]=0;
 		for (j=m->col[i]; j<m->col[i+1]; j++){	/* The indices of the nnz elements are retrieved by splicing COL */
+
+			#if 0
 			printf("index = %d value = %d mask value = %d\n", m->row[j], v[m->row[j]], mask[m->row[j]]);
+			#endif
+
 			pv[i]+=v[m->row[j]] * mask[m->row[j]];				/* The values corresponding in the vectors are summed together   */
 		}
 	}

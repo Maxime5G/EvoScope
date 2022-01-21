@@ -554,9 +554,8 @@ void set_e1_vectors_mask(Node *n, int **e1, char **mask)
 
 	   for (i = 0; i < n->nevt; i++) {
 		   e1[i][numBranche]=n->evt[i];
-		   if (n->evt[i] < 0){
-			   printf("i=%d\n", i);
-			   printf("numBranche=%d\n", numBranche);
+
+		   if ((int)n->evt[i] >= 0){
 		   	   mask[i][numBranche]=1;
 			}
 	   }

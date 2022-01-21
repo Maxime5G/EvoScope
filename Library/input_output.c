@@ -308,7 +308,7 @@ int **InitEvents( Node *root, int nbranches, int nevt, int mat_type, int **e1M, 
 
 /* WIP: same as above but with the mask vector	*/
 
-int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, int **e1M, char **mask, int output_vectors){
+int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, int **e1M, char ***mask, int output_vectors){
 
 	int **e1, i, j;
 
@@ -335,19 +335,20 @@ int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, 
 	  }
 	}
 
-	if ((mask = (char **)malloc((size_t)nevt*sizeof(char *))) == NULL){
+	if (((*mask) = (char **)malloc((size_t)nevt*sizeof(char *))) == NULL){
 		fprintf(stderr,"Not enough memory for mask vectors\n");
 		exit(1);
 	}
 	for (i = 0; i < nevt; i++) {
-	  if ((mask[i]=(char *)malloc((size_t)nbranches*sizeof(char)))== NULL) {
-		  fprintf(stderr,"Not enough memory for e1 vectors\n");
+	  if (((*mask)[i]=(char *)calloc((size_t)nbranches, sizeof(char))) == NULL){
+	  // if (((*mask)[i]=(char *)malloc((size_t)nbranches*sizeof(char)))== NULL) {
+		  fprintf(stderr,"Not enough memory for mask vectors\n");
 		  exit(1);
 	  }
 	}
 
 	/* fill the event vectors	*/
-	set_e1_vectors_mask(root, e1, mask);
+	set_e1_vectors_mask(root, e1, *mask);
 
 	/* print the vectors		*/
 	if (output_vectors) {
@@ -361,7 +362,7 @@ int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, 
 	  for (i = 0; i < nevt; i++) {
 		  fprintf(stderr,"mask vector %d: ",i);
 		  for (j = 0; j < nbranches; j++){
-			  fprintf(stderr,"%1d ",mask[i][j]);
+			  fprintf(stderr,"%d ",(*mask)[i][j]);
 		  }
 		  fprintf(stderr,"\n");
 	  }
@@ -395,8 +396,8 @@ void Read_Coevol_InForest_Data( struct CoevolData *MyCoevolData, int t, char *ne
         MyCoevolData[t].chronomat = SetMatrix( mat_type, MyCoevolData[t].nbranches, MyCoevolData[t].root, verbose ); // mat_type 0:Id, 1:S, 2:Both
 		if (mat_type != 0)
 			MyCoevolData[t].sparseChronomat = convertToSparseMatrix(MyCoevolData[t].nbranches, MyCoevolData[t].chronomat); // convert chronomat to sparse format
-		MyCoevolData[t].e1 = InitEvents( MyCoevolData[t].root, MyCoevolData[t].nbranches, *nevt, mat_type, &MyCoevolData[t].e1M, verbose );
-		// MyCoevolData[t].e1 = InitEventsAndMaskFlag( MyCoevolData[t].root, MyCoevolData[t].nbranches, *nevt, mat_type, &MyCoevolData[t].e1M, MyCoevolData[t].mask, verbose );
+		// MyCoevolData[t].e1 = InitEvents( MyCoevolData[t].root, MyCoevolData[t].nbranches, *nevt, mat_type, &MyCoevolData[t].e1M, verbose );
+		MyCoevolData[t].e1 = InitEventsAndMaskFlag( MyCoevolData[t].root, MyCoevolData[t].nbranches, *nevt, mat_type, &MyCoevolData[t].e1M, &MyCoevolData[t].mask, verbose );
     }else{
 
 		MyCoevolData[t].nevt = count_max_event(MyCoevolData[t].root, 0, verbose);
@@ -929,7 +930,7 @@ char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput
 			if (scen >= 'a' && scen <= 'z')
 		    	sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c.tab", pref, cond?pref:basename, scen, scen);
 			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, scen);
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, toupper(scen));
 			break;
 
 		case 1:
@@ -956,7 +957,7 @@ char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput
 			if (scen >= 'a' && scen <= 'z')
 				sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c_forest.tab", pref, cond?pref:basename, scen, scen);
 			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, scen);
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, toupper(scen));
 			break;
 
 		default:

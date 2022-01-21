@@ -62,12 +62,11 @@ static int readBEAST( char *s , Node *node ){
 
 
 /*-------------------------------------------------------------------	*/
-int set_evenement (char *s, Node *noeud)
+int set_evenement (char *s, Node *noeud, int *fl)
 {
   char temps[10];
   int i=0 , pos=0, j=0, slash=0, ncharlu=0;
   static int nbTotalEvenement=0;
-
 
  /* Verification de la chaine de caractere */
 
@@ -137,9 +136,14 @@ int set_evenement (char *s, Node *noeud)
        else {
            temps[i]='\0';
            sscanf( temps,"%d",&(noeud->evt[j]));
-	   if (noeud->evt[j] < 0) {
+	   if (noeud->evt[j] < -1) {
 	      fprintf(stderr, "node %s, event %d is negative (%d) !\nexiting...\n",noeud->name,j+1,noeud->evt[j]);
 	      exit(5);
+	   }
+	   if ((noeud->evt[j] < 0) && (*fl)==0) {
+		   fprintf(stderr, "you have negative events in your tree.\n In this situation, epics/epocs considers this as unknown!\n");
+		   fprintf(stderr, "first occurrence = node %s, event %d (%d)\n", noeud->name,j+1,noeud->evt[j]);
+		   (*fl)=1;
 	   }
            i=0;
            j++;
@@ -270,16 +274,13 @@ char **readFileMultiNewick(char *treefile, int opt_read_stdin, int **nbleaves, i
 	while (!feof(f)){
 		c=fgetc(f);
 		count++;
-		// printf("%c", c);
+
 		if (c=='\n'){
 			(*ntrees)+=1;
 			if (count>maxlength) maxlength=count;
 			count=0;
 		}
 	}
-	// printf("\n");
-
-	// printf("ntrees=%d\n", *ntrees);
 
 	(*nbleaves) = calloc( (*ntrees), sizeof(int));
 	l = calloc( (*ntrees), sizeof(int));
@@ -439,6 +440,7 @@ int lit_newickmyMulti( char *chaine, int la_pos, int *which_node, struct mymulti
 
 	float t=-1;
 	char *nom;
+	static int fl=0;
 
 	// printf("node=%d\n", *which_node);
 	// printf("here is the tree: %s\n", chaine);
@@ -507,7 +509,7 @@ int lit_newickmyMulti( char *chaine, int la_pos, int *which_node, struct mymulti
 					fprintf(stderr,"%s\n",chaine+la_pos); *(chaine+la_pos+k+1)=c;}
 					*/
 					if(	chaine[la_pos+1] != '&' )
-						la_pos += set_evenement(chaine+la_pos,myNodes[leaf].anc->descs[which_desc]); /* fonction lecture des evenements */
+						la_pos += set_evenement(chaine+la_pos,myNodes[leaf].anc->descs[which_desc], &fl); /* fonction lecture des evenements */
 					else
 						la_pos += readBEAST(chaine+la_pos,myNodes[leaf].anc->descs[which_desc]);     /* get info from the BEAST annotation */
 

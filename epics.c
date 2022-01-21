@@ -95,7 +95,7 @@ void InitFacto( int nevt, int ntree, struct CoevolData *MyEpicsData, int verbose
 
 		for (i = 0; i < nevt; i++)
 		{
-			n1 = sumv(MyEpicsData[t].e1[i], MyEpicsData[t].nbranches);
+			n1 = sumvP(MyEpicsData[t].e1[i], MyEpicsData[t].nbranches);
 			if (n1 > nmax)
 				nmax = n1;
 		}
@@ -246,12 +246,7 @@ void PrintHelp(char *s)
 	fprintf(stderr,"\n [verbose options]\n");
 	fprintf(stderr,"    -v: (verbose) outputs running progression of the program\n");
 	fprintf(stderr,"    -V: (very verbose) outputs running progression of the program and more...\n");
-	// fprintf(stderr,"    -a: select all options b,d,m,t,e (see below)\n");
-	// fprintf(stderr,"    -b: outputs branches number, length and associated probabilities\n");
 	fprintf(stderr,"    -d: (distribution) output on stderr the inseparable and/or genealogically ordered pairs probabilities distribution \n");
-	// fprintf(stderr,"    -m: (matrix) output on stderr the S or S+Id matrix\n");
-	// fprintf(stderr,"    -t: (tree) output the input tree on stderr\n");
-	// fprintf(stderr,"    -e: (e1,e2) output on stderr the e1 and e2 vectors (of mutations)\n");
 }
 
 
@@ -293,13 +288,11 @@ int main( int argc , char **argv)
            pval,					/* combined pvalue for multiple trees 	*/
            seuil_evt = 0.05L,		/* pvalue threshold to determine whether to output a pair on the newick tree	*/
    		   seuil_pval = 0.05L;		/* pvalue threshold to consider a pair significant	*/
-		   // pvalue_of_pair = 0.0L;	/* pvalue for the pair considered - OLD	*/
 
     double *lkDist=NULL;			/* likelihood distribution in case of forest implementation	*/
 
 	char * infile=NULL;
 	char *input_events_file=NULL;		/* pointer to open input event to run */
-	// int **input_events=NULL;			/* array of events to run */
 	EventsArray *input_events=NULL;
 
 	char output_prefix[1000]="out"; /* default output prefix           */
@@ -624,9 +617,8 @@ int main( int argc , char **argv)
 						n1 and n2 - cumulative sums of e1 and e2 respectively
 					*/
 
-					n1 = sumv( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].nbranches); 	/* cumulative sum of e1	*/
-					n2 = sumv( MyTrees[f].MyCoevolData[t].e1[j],  MyTrees[f].MyCoevolData[t].nbranches); 	/* cumulative sum of e2	*/
-
+					n1 = sumvP( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].nbranches); 	/* cumulative sum of e1	*/
+					n2 = sumvP( MyTrees[f].MyCoevolData[t].e1[j],  MyTrees[f].MyCoevolData[t].nbranches); 	/* cumulative sum of e2	*/
 					if(verbose>1) fprintf(stderr, "n1 %d ; n2 %d\n", n1,n2);
 
 					/*
@@ -635,16 +627,23 @@ int main( int argc , char **argv)
 
 					if (!do_e1M)	// We don't need to compute e1.M at every round
 					{
-						if (mat_type != 0)	vectSparseMat( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].sparseChronomat, MyTrees[f].MyCoevolData[t].nbranches, MyTrees[f].MyCoevolData[t].e1M);
-						else				MyTrees[f].MyCoevolData[t].e1M =  MyTrees[f].MyCoevolData[t].e1[i];
+						if (mat_type != 0)	vectSparseMatAndMask( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].sparseChronomat, MyTrees[f].MyCoevolData[t].nbranches, MyTrees[f].MyCoevolData[t].e1M, MyTrees[f].MyCoevolData[t].mask[i]);
+						else{
+							MyTrees[f].MyCoevolData[t].e1M =  MyTrees[f].MyCoevolData[t].e1[i];
+							for (int z=0; z<MyTrees[f].MyCoevolData[t].nbranches; z++){
+								MyTrees[f].MyCoevolData[t].e1M[z] *= (int)MyTrees[f].MyCoevolData[t].mask[i][z];
+							}
+
+						}
 						if (ntree==1 && maxforest==1)
 							do_e1M=1;
 					}
+
 			  		/*
 			  			Computation of a "compressed" vector of possible pairs (given M and e1)
 			  		*/
 
-					set_vect_classes(MyTrees[f].MyCoevolData[t].e1M, MyTrees[f].MyCoevolData[t].e1[j], MyTrees[f].MyCoevolData[t].nbranches, &nclasses, &ne1M, &ne2, MyTrees[f].MyCoevolData[t].branch_lengths, &nbranch_lengths, t);
+					set_vect_classes_mask(MyTrees[f].MyCoevolData[t].e1M, MyTrees[f].MyCoevolData[t].e1[j], MyTrees[f].MyCoevolData[t].mask[i], MyTrees[f].MyCoevolData[t].mask[j], MyTrees[f].MyCoevolData[t].nbranches, &nclasses, &ne1M, &ne2, MyTrees[f].MyCoevolData[t].branch_lengths, &nbranch_lengths, t);
 
 			  		nn2 = sumv(ne2, nclasses); /* new cumulative sum of vecteur e2, identical to n2 a priori */
 			  		if(nn2 != n2) fprintf(stderr, "main: this should not happen, exiting\n"),exit(4);
@@ -654,7 +653,6 @@ int main( int argc , char **argv)
 			  		*/
 					ldistrib = n1*n2+1;
 					Init_veck_distrib( nclasses, &nclassmax, &nveck, ldistrib,  &max_ldistrib, &distrib );
-
 					/*
 						generate the distributions
 					*/
@@ -675,11 +673,9 @@ int main( int argc , char **argv)
 					}
 
 			  		if (output_dist)  PrintDist(distrib, ldistrib, mat_type );
-					// PrintDist(distrib, ldistrib, mat_type );
 			  		/*
 			  			# of observed pairs (depends on M)
 			  		*/
-
 			  		n_obs_pairs = iprodsca(ne1M, ne2, nclasses);
 			  		mymax=MaxDistrib( distrib, ldistrib  );
 

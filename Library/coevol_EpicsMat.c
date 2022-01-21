@@ -91,6 +91,24 @@ int nnzv(int *v, int lv)
 
 }
 
+/*-------------------------------------------------------	*/
+/* returns the number of nnz elements of the integer        */
+/* vector v of length lv                                    */
+/*-------------------------------------------------------	*/
+
+int sumvP(int *v, int lv)
+{
+    int i, sum = 0;
+
+   for ( i = 0; i < lv; i++){
+       if (v[i]>0)
+            sum+=v[i];
+    }
+
+    return sum;
+
+}
+
 /* ------------------------------------------------------------ */
 /* prints an integer vector v of length l in file f			    */
 /* ------------------------------------------------------------ */
@@ -722,6 +740,97 @@ void set_vect_classes(int *e1m, int *e2, int nbranches, int *nclasses, int **ne1
 
 }
 
+/* -------------------------------------------------------	*/
+/* takes a vector in input, outputs the number of different values,             */
+/* generates a vector of classes with a vector of lengths (i.e., probabilities) */
+/* of the classes. same for ne2. Length of new vectors = nclasses               */
+/* -------------------------------------------------------	*/
+
+void set_vect_classes_mask(int *e1m, int *e2, char *maske1, char *maske2, int nbranches, int *nclasses, int **ne1m, int **ne2, double *proba, double **nproba, int t)
+{
+    int i, j, last, *e1 = sTableau[t], *cl = sTableau2[t];
+
+    /* first copy the e1m vector	*/
+    memcpy((void *)e1, (void *)e1m, (size_t)nbranches*sizeof(int));
+    /* trie en ordre decroissant */
+    qsort(e1,nbranches,sizeof(int), (int (*)(const void * , const void * ))estpluspetit);
+
+    /* find the number of classes and their value in cl */
+    last = e1[0]; /* n will be the last value seen   */
+
+
+    j = 0;
+    for ( i = 1; i < nbranches; i++) {
+        if (e1[i] != last) {        /* different from the last seen value   */
+           cl[j]=last;         /* keep the number seen in identical values     */
+           last = e1[i];            /* new value */
+           j++;
+        }
+    }
+    cl[j] = last; /* last ni[j] */
+
+    *nclasses = j+1;        /* j est superieur au dernier indice utilise */
+
+
+    /* first free old vectors	*/
+    if (*ne1m)
+    free(*ne1m);
+    if (*ne2)
+    free(*ne2);
+    if (*nproba)
+    free(*nproba);
+
+    if ((*ne1m=(int*)calloc((size_t)(*nclasses),sizeof(int)))==NULL || (*ne2=(int*)calloc((size_t)(*nclasses),sizeof(int)))==NULL
+    || (*nproba=(double*)calloc((size_t)(*nclasses),sizeof(double)))==NULL) {
+    fprintf(stderr, "Not enough memory to create an array (ne1m,ne2 or nproba)\nexiting...\n");
+    exit(1);
+    }
+
+    /* parcours de e1m et compression dans ne1m (idem pour ne2 et addition des proba) */
+    for (i = 0; i < nbranches; i++) {
+    /* find the class of the i-th element	*/
+        j=0;
+    while (e1m[i]!=cl[j])
+    	j++;
+    (*ne1m)[j]=cl[j];	/* in fact, ne1m is same as cl ! */
+    /* (*ne1m)[j] += e1m[i]; */
+    /* append the probability */
+    (*nproba)[j] += proba[i]*(int)maske1[i];
+    /* append the e2 value to the ne2 class */
+    (*ne2)[j] += e2[i]*(int)maske2[i];
+    // printf("ne2[%d] = %d, e2[%d] = %d, mask[%d] = %d\n", j, (*ne2)[j], i, e2[i], i, maske2[i]);
+    }
+    double s=0.0L;
+    for (i=0; i < *nclasses; i++) {
+           if ((*nproba)[i]==0) (*nproba)[i]=1e-15;
+           s+=(*nproba)[i];
+    }
+    for (i=0; i < *nclasses; i++) {
+        (*nproba)[i]/=s;
+    }
+
+#if 0
+   fprintf(stderr,"e1m=");
+   print_ivect(stderr,e1m,nbranches);
+   fprintf(stderr,"ne1m=");
+   print_ivect(stderr,*ne1m,*nclasses);
+   fprintf(stderr,"ne2=");
+   print_ivect(stderr,*ne2,*nclasses);
+   fprintf(stderr,"nproba=");
+   {
+   	double s=0.0L;
+   	for (i=0; i < *nclasses; i++) {
+     		fprintf(stderr,"%f ",(*nproba)[i]);
+     		s+=(*nproba)[i];
+   	}
+   	fprintf(stderr,"sumprob= %f\n",s);
+   }
+#endif
+
+   return;
+
+}
+
 /*-----------------------------------MULTINOMIAL--------------------------------------*/
 /* the form of the multinomial is entirely via logarithms. 							  */
 /* the formula is therefore: lnFacto[#e2] + SUM (log(ni)+log(Pi)) - SUM (lnFacto(ni)) */
@@ -744,7 +853,7 @@ void generate_multinomial(int *veck, double *vproba, int lveck, int sum_e2, int 
 	if (rest==0){										/* if we placed all e2 events						  */
 
 		proba = proba-denom+slnFacto[sum_e2];			/* the probability calculation in log      			  */
-					                                    /* we exponentiate test whether it is <0        	  */
+					                                    /* we test whether it is <0        	                  */
         if (proba < 0.0L){
 			// index = iprodsca(e1m, veck, lveck);		/* we find the hits							    	  */
 
@@ -772,9 +881,10 @@ void generate_multinomial(int *veck, double *vproba, int lveck, int sum_e2, int 
 		/* be propagated along the recursion and allows us to generate all combinations for the    			   */
 		/* multinomial. 																					   */
 
-		if (vproba[i]>0.0L){
+ 		if (vproba[i]>0.0L){
 			proba += log(vproba[i]);					/* we add the probability of the category 				   */
         }
+
 		if (veck[i]>0)
 		{
 			denom += log(veck[i]);

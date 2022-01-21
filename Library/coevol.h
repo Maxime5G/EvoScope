@@ -174,6 +174,7 @@ void transpose_a_matrix_antidiagonal(IntegerMatrix *mat);
 IntegerMatrix * chrono_excl(Node *n, int nbranches);
 void print_matrice(IntegerMatrix *m, FILE *f);
 int sumv(int *v, int lv);
+int sumvP(int *v, int lv);
 int nnzv(int *v, int lv);
 int iprodsca(int *u, int *v, int l);
 void vectmat(int *v, IntegerMatrix *m, int *pv);
@@ -196,6 +197,7 @@ int **InitEventsAndMaskFlag( Node *root, int nbranches, int nevt, int mat_type, 
 
 /* partie multinomiale */
 void set_vect_classes(int *e1m, int *e2, int nbranches, int *nclasses, int **ne1m, int **ne2, double *proba, double **nproba, int t);
+void set_vect_classes_mask(int *e1m, int *e2, char *maske1, char *maske2, int nbranches, int *nclasses, int **ne1m, int **ne2, double *proba, double **nproba, int t);
 void generate_multinomiale(int *veck, double *vproba, int lveck, int current_niveau, int prevn, int reste,
 		double fact_ratio, double *distrib, int *e1m, int sum, int t);
 
