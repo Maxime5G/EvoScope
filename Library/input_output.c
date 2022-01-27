@@ -930,7 +930,7 @@ char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput
 			if (scen >= 'a' && scen <= 'z')
 		    	sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c.tab", pref, cond?pref:basename, scen, scen);
 			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, toupper(scen));
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, scen);
 			break;
 
 		case 1:
@@ -957,7 +957,7 @@ char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput
 			if (scen >= 'a' && scen <= 'z')
 				sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c_forest.tab", pref, cond?pref:basename, scen, scen);
 			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, toupper(scen));
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, scen);
 			break;
 
 		default:
