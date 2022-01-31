@@ -97,7 +97,7 @@ void vectSparseMat (int *v, sparseMatrix *m, int lv, int *pv){
 	return;
 }
 
-void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask){
+void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *maske1, char *maske2){
 	int i, j; /* i=columns, j=rows */
 
 	/* lv is the length of the vector, which is also the	*/
@@ -111,7 +111,7 @@ void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask)
 			printf("index = %d value = %d mask value = %d\n", m->row[j], v[m->row[j]], mask[m->row[j]]);
 			#endif
 
-			pv[i]+=v[m->row[j]] * mask[m->row[j]];				/* The values corresponding in the vectors are summed together   */
+			pv[i]+=v[m->row[j]] * (int)maske1[m->row[j]] * (int)maske2[m->row[j]];				/* The values corresponding in the vectors are summed together   */
 		}
 	}
 	return;

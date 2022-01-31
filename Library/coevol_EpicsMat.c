@@ -795,7 +795,7 @@ void set_vect_classes_mask(int *e1m, int *e2, char *maske1, char *maske2, int nb
     (*ne1m)[j]=cl[j];	/* in fact, ne1m is same as cl ! */
     /* (*ne1m)[j] += e1m[i]; */
     /* append the probability */
-    (*nproba)[j] += proba[i]*(int)maske1[i];
+    (*nproba)[j] += proba[i]*(int)maske1[i]*(int)maske2[i];
     /* append the e2 value to the ne2 class */
     (*ne2)[j] += e2[i]*(int)maske2[i];
     // printf("ne2[%d] = %d, e2[%d] = %d, mask[%d] = %d\n", j, (*ne2)[j], i, e2[i], i, maske2[i]);

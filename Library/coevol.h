@@ -210,7 +210,7 @@ void generate_approached_multinomial(int *veck, double *vproba, int lveck, int s
 
 sparseMatrix *convertToSparseMatrix(int nrow, IntegerMatrix *input_mat);
 void vectSparseMat (int *v, sparseMatrix *m, int lv, int *pv);
-void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *mask);
+void vectSparseMatAndMask (int *v, sparseMatrix *m, int lv, int *pv, char *maske1, char *maske2);
 void print_sparse_matrix(sparseMatrix *m, FILE *f);
 
 #endif

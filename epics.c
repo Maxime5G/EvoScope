@@ -627,11 +627,11 @@ int main( int argc , char **argv)
 
 					if (!do_e1M)	// We don't need to compute e1.M at every round
 					{
-						if (mat_type != 0)	vectSparseMatAndMask( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].sparseChronomat, MyTrees[f].MyCoevolData[t].nbranches, MyTrees[f].MyCoevolData[t].e1M, MyTrees[f].MyCoevolData[t].mask[i]);
+						if (mat_type != 0)	vectSparseMatAndMask( MyTrees[f].MyCoevolData[t].e1[i],  MyTrees[f].MyCoevolData[t].sparseChronomat, MyTrees[f].MyCoevolData[t].nbranches, MyTrees[f].MyCoevolData[t].e1M, MyTrees[f].MyCoevolData[t].mask[i], MyTrees[f].MyCoevolData[t].mask[j]);
 						else{
 							MyTrees[f].MyCoevolData[t].e1M =  MyTrees[f].MyCoevolData[t].e1[i];
 							for (int z=0; z<MyTrees[f].MyCoevolData[t].nbranches; z++){
-								MyTrees[f].MyCoevolData[t].e1M[z] *= (int)MyTrees[f].MyCoevolData[t].mask[i][z];
+								MyTrees[f].MyCoevolData[t].e1M[z] *= (int)MyTrees[f].MyCoevolData[t].mask[i][z] * (int)MyTrees[f].MyCoevolData[t].mask[j][z];
 							}
 
 						}
