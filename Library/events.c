@@ -193,6 +193,62 @@ int verif_nevt(Node *n, int nevt, int verbose)
 
 }
 
+/* -------------------------------------------------------------------------------- */
+/* verify that each node from node n consists of a list of nevt events				*/
+/* exclusively composed of 0, 1 or -1 (unknown trait)								*/
+/* if no list is present, allocatre this list and initialize with 0 the nevt events	*/
+/* If a list exists with different number of events, EXIT							*/
+/* return the number of nodes needed to be initialized								*/
+/* --------------------------------------------------------------------------------	*/
+int verif_nevt_gaps(Node *n, int nevt, int verbose)
+{
+	int changed=0, i;
+	static int branchnum = -1;
+
+	if(n->anc == NULL)
+		 branchnum = -1;
+
+
+	branchnum++;
+
+
+	if (n->nevt == 0) {
+	        n->nevt=nevt;
+		n->evt=malloc((n->nevt)*sizeof(int));
+		if (n->evt==NULL) {
+			fprintf(stderr,"Malloc error for event list (node %s),exiting\n",n->name);
+			exit(11);
+		}
+		memset((void *)n->evt, 0, (size_t)n->nevt*sizeof(int));
+		if (verbose) fprintf(stderr,"Node %s [%d] has been given a list of %d events (filled with 0)\n",n->name, branchnum, n->nevt);
+		changed = 1;
+	}
+	else if (n->nevt != nevt) {
+		fprintf(stderr,"Should not happen: %s [%d] node has not %d events in its list, but %d events:\n",n->name, branchnum, nevt, n->nevt);
+		for (i = 0; i < n->nevt; i++) {
+		   fprintf(stderr,"event %d -> %d\n",i,n->evt[i]);
+		}
+		fprintf(stderr,"cannot continue, exiting...\n");
+		exit(12);
+	}
+
+	/* verifie les valeurs 0 ou 1 */
+	for (i = 0; i < n->nevt; i++) {
+	   if (n->evt[i] != 0 && n->evt[i] != 1 && n->evt[i] != -1) {
+	      fprintf(stderr,"Error: Node %d name %s event %d -> %d is not 0 nor 1\n",branchnum, n->name, i,n->evt[i]);
+	      exit(15);
+	   }
+	}
+
+	/* va voir chez les descendants	*/
+	for (i = 0; i < n->nbdesc; i++) {
+		changed += verif_nevt_gaps(n->descs[i], nevt, verbose);
+	}
+
+	return changed;
+
+}
+
 /* ----------------------------------------------------------------------------	*/
 /* met le type d'evt a chaque noeud selon les evt i et j    			*/
 /* retourne le nombre de fork							*/
@@ -231,6 +287,54 @@ int set_evt_type_count_fork(Node *n, int nevt, int evti, int evtj, int verbose, 
 	/* va voir chez les descendants	*/
 	for (i = 0; i < n->nbdesc; i++) {
 		nbfork += set_evt_type_count_fork(n->descs[i], nevt, evti, evtj, verbose, output_state_vector);
+	}
+
+	return nbfork;
+
+}
+
+/* ----------------------------------------------------------------------------	*/
+/* met le type d'evt a chaque noeud selon les evt i et j    			*/
+/* retourne le nombre de fork							*/
+/* ----------------------------------------------------------------------------	*/
+int set_evt_type_count_fork_gaps(Node *n, int nevt, int evti, int evtj, int verbose, int output_state_vector)
+{
+	int nbfork=0, i;
+	static int branchnum = -1;
+
+	if(n->anc == NULL)
+		 branchnum = -1;
+
+
+	branchnum++;
+
+	/* DEBUG fprintf(stderr,"Noeud %d evt[%d] = %d, evt[%d] = %d\n",n->id,evti,n->evt[evti],evtj,n->evt[evtj]); */
+	if (n->evt[evti] == -1 || n->evt[evtj] == -1){
+		n->evtype=(char)5;
+	}else{
+		if (n->evt[evti] == n->evt[evtj]) {
+			if (n->evt[evti]==0)
+				n->evtype = (char)0; /* pas d'evenement */
+			else {
+				n->evtype = (char)3; /* 2 evenements (sans ordre, donnera 3: ordre 12 ou 4: ordre 21)  */
+				nbfork = 1;
+			}
+		}
+		else {
+			if (n->evt[evti]==1)
+				n->evtype = (char)1; /* evenement 1 */
+			else
+				n->evtype = (char)2; /* evenement 2 */
+		}
+	}
+
+	if (output_state_vector) {
+		fprintf(stderr, "Node %d: type event: %d\n",branchnum,n->evtype);
+	}
+
+	/* va voir chez les descendants	*/
+	for (i = 0; i < n->nbdesc; i++) {
+		nbfork += set_evt_type_count_fork_gaps(n->descs[i], nevt, evti, evtj, verbose, output_state_vector);
 	}
 
 	return nbfork;

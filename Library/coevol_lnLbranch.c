@@ -639,7 +639,9 @@ double ln_vraisemblance(Node *n, char *vector_evt_type, double tau[2][4], int *I
 	/* l'IS des fils est le FS de la branche */
 	for ( i = 0; i < n->nbdesc; i++) {
 		/* pour ne pas toucher FS: for (j=0;j<2;j++) NIS[j]=FS[j]; */
-		mylnL += ln_vraisemblance(n->descs[i], vector_evt_type, tau, FS );
+		if (vector_evt_type[n->descs[i]->id-1] != 5){
+			mylnL += ln_vraisemblance(n->descs[i], vector_evt_type, tau, FS );
+		}
 	}
 
 	// printf("mylnL = %f\n", mylnL);

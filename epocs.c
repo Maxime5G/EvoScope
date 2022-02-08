@@ -441,7 +441,8 @@ int main( int argc , char **argv)
 
 		for (f=0; f<maxforest; f++){
 			for (t=0; t<ntree; t++){
-				MyTrees[f].MyCoevolData[t].theTVector.nbfork = set_evt_type_count_fork(MyTrees[f].MyCoevolData[t].root, nevt, evti, evtj, verbose, output_state_vector);
+				// MyTrees[f].MyCoevolData[t].theTVector.nbfork = set_evt_type_count_fork(MyTrees[f].MyCoevolData[t].root, nevt, evti, evtj, verbose, output_state_vector);
+				MyTrees[f].MyCoevolData[t].theTVector.nbfork = set_evt_type_count_fork_gaps(MyTrees[f].MyCoevolData[t].root, nevt, evti, evtj, verbose, output_state_vector);
 				MyTrees[f].nbfork+=MyTrees[f].MyCoevolData[t].theTVector.nbfork;
 				if(verbose) fprintf(stderr, "nbfork: %d for tree: %d\n", MyTrees[f].MyCoevolData[t].theTVector.nbfork, maxforest>1?f:t);
 			}

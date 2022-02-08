@@ -401,7 +401,8 @@ void Read_Coevol_InForest_Data( struct CoevolData *MyCoevolData, int t, char *ne
     }else{
 
 		MyCoevolData[t].nevt = count_max_event(MyCoevolData[t].root, 0, verbose);
-		MyCoevolData[t].changed = verif_nevt(MyCoevolData[t].root, MyCoevolData[t].nevt, verbose);
+		// MyCoevolData[t].changed = verif_nevt(MyCoevolData[t].root, MyCoevolData[t].nevt, verbose);
+		MyCoevolData[t].changed = verif_nevt_gaps(MyCoevolData[t].root, MyCoevolData[t].nevt, verbose);
     }
 
 }
