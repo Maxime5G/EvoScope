@@ -55,7 +55,8 @@ SRC = tree.c   \
     events.c\
 	coevol_sparseMat.c\
 	coevol_FindML_multi.c\
-	input_output.c
+	input_output.c\
+	MCMC.c
 
 OBJECTS = $(SRC:.c=.o)
 

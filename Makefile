@@ -33,8 +33,9 @@ SHELL=/bin/sh
 
 EPICSSRC = epics.c
 EPOCSSRC = epocs.c
+EPOCSMCMCSRC = epocs_mcmc.c
 
-PROGS = epics epocs
+PROGS = epics epocs epocs_mcmc
 
 LIBTREE = libtree.a
 LIBDIR = Library/
@@ -59,6 +60,9 @@ epics: $(EPICSSRC) $(LIBDIR)/$(LIBTREE)
 	$(CC) $(CFLAGS) -D$(MACHINE)  -o $@ $< $(LIBDIR)/$(LIBTREE) -lm;
 
 epocs: $(EPOCSSRC) $(LIBDIR)/$(LIBTREE)
+	$(CC) $(CFLAGS) -D$(MACHINE) -o $@ $< $(LIBDIR)/$(LIBTREE) -lm;
+
+epocs_mcmc: $(EPOCSMCMCSRC) $(LIBDIR)/$(LIBTREE)
 	$(CC) $(CFLAGS) -D$(MACHINE) -o $@ $< $(LIBDIR)/$(LIBTREE) -lm;
 
 %.o: %.c
