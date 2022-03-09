@@ -164,19 +164,15 @@ int main( int argc , char **argv)
 	int filelength=0;					/* length of the array of events to run */
 	char * infile=NULL;
 
-	double maxrate=0.0;
-
 	int verbose=0;
 
 	int nbleaves=0,
-		i, j,
 	    nevt=-1,
 	    carg,
 	    evti,
 	    evtj,
 		veryverbose=0,
 	    output_tree = 0,    /*1= in newick, 2=in ascii*/
-	    output_newick = 0,
 	    output_state_vector = 0,
 		choice_e1=0,			/* if the user wants to input a particular event to test - e1 */
 		choice_e2=0,			/* if the user wants to input a particular event to test - e2 */
@@ -290,27 +286,17 @@ int main( int argc , char **argv)
 	   fprintf(stderr, "Usage: ./epocs_mcmc [options] outgroup [tree_file]\nfor more help ./epocs -h\n"), exit(2);
 
    srand(time(NULL));
-	printf("pi = %f\n", M_PI);
-   printf("normal prior of mean %d sd %d val %d = %f\n", 1, 0, 0, normal_prior(1,1,1));
-   // exit(1);
-
-   for (int i=0; i<10; i++){
-       double number = sample_number(5.5,15.5);
-       printf("%f, ", number);
-       printf("%f, ", exponential_prior(number, 10));
-   }
-   printf("\n");
-   // exit(1);
 
 
    /* ---------------------------------------------------------------------------------------------- */
    /* Check that, if the user chose events to run, e1 < e2 (given the loop) 	  	 		  		  */
    /* This also verifies that if the user mistakenly input -2 only, choice_e2 is copied to choice_e1 */
 
-	// if ((input_events_file) && (choice_e1 || choice_e2))fprintf(stderr,"ERROR: Choices not permitted when inputting an events file\n"), exit(1);
-
 	if ((!choice_e1 && choice_e2) || (!choice_e2 && choice_e1) || (!choice_e1 && !choice_e2)){
-		fprintf(stderr, "ERROR: please input two events to select!\n"), exit(1);
+        fprintf(stderr, "You did not select two events, setting by default 1 vs 2\n");
+        choice_e1=1;
+        choice_e2=2;
+        // fprintf(stderr, "ERROR: please input two events to select!\n"), exit(1);
 	}
 
 	if ((choice_e1 && choice_e2) && (choice_e2 <= choice_e1)){
@@ -320,8 +306,6 @@ int main( int argc , char **argv)
 	}
 
 	if ((choice_e1 && choice_e2) && (choice_e1 == choice_e2))fprintf(stderr,"ERROR: Please input different numbers for the event choice\n"), exit(1);
-
-	printf("choice_e1 = %d choice_e2 = %d\n", choice_e1, choice_e2);
 
    /* ---------------------------------------------------------------------------------------------- */
 
@@ -358,9 +342,7 @@ int main( int argc , char **argv)
 
 	if(verbose){
 		fprintf(stderr, "ntrees in forest=%d\n", maxforest);
-		if (maxforest>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
 		fprintf(stderr, "ntree in input=%d\n", ntree);
-		if (ntree>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
 		fprintf(stderr, "number of events = %d\n", nevt);
 		for (t=0; t<ntree; t++){
 			for (f=0; f<forestntree[t]; f++){
@@ -372,6 +354,8 @@ int main( int argc , char **argv)
 		}
 		printf("\n");
 	}
+    if (maxforest>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
+    if (ntree>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
 
 	/* --- FILE INITIALIZATIONS ---	*/
 
@@ -384,9 +368,6 @@ int main( int argc , char **argv)
 
 	/* Verifying if the user gave an input file of significant events to run. If yes, store the events */
 	/* in an nx2 array. */
-	// if (input_events_file){
-	// 	input_events = createArrayEventsToRun(input_events_file, &filelength, verbose); 		/* if -R chosen, creates the array of event ids to run. */
-	// }
 
 	/*
 		VERBOSE - printing the changes made to some nodes (e.g., missing events are now 0/0/...)
@@ -424,23 +405,9 @@ int main( int argc , char **argv)
 	fprintf(stderr, "\tchosen scenario is '%c'\n", scenario);
 	fprintf(stderr, "*/\n");
 
-	/*
-		The idea of the loop is to allow the user to input either a file with signif pairs (stored in array).
-		If there is no file, then goes along the loop. For this reason, the for loop has been
-		rewritten from the inside to a while loop.
-	*/
-
-	int count_file=0;
-	int count_i=0;
-	int count_j=1;
-
-	evti = choice_e1-1<0?0:choice_e1-1;
-	evtj = choice_e2-1<1?1:choice_e2-1;
-	// printf("here\n");
-	// min(0, choice_e1-1);
-	// evtj = min(1, choice_e2-1);
-
-	printf("Comparing e_%d vs. e_%d\n",evti+1,evtj+1);
+    evti = choice_e1-1<0?0:choice_e1-1;
+    evtj = choice_e2-1<1?1:choice_e2-1;
+	fprintf(stderr, "Comparing e_%d vs. e_%d\n",evti+1,evtj+1);
 
 	MyTrees[0].MyCoevolData[0].theTVector.nbfork = set_evt_type_count_fork_gaps(MyTrees[0].MyCoevolData[0].root, nevt, evti, evtj, verbose, output_state_vector);
 	MyTrees[0].nbfork+=MyTrees[0].MyCoevolData[0].theTVector.nbfork;
@@ -459,12 +426,12 @@ int main( int argc , char **argv)
 	count_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, &MyTrees[0].MyCoevolData[0].theTVector.nvect); // actual counting
 	MyTrees[0].maxForkVector[0] = MyTrees[0].MyCoevolData[0].theTVector.nvect; 										 // storing the number of tvectors
 
-    // printf("tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", 1,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, MyTrees[0].MyCoevolData[0].theTVector.nbfork>forkmax?(int)pow(2,forkmax)*3: (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
-    // print_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, MyTrees[0].MyCoevolData[0].nbranches, stdout);
+    // printf("nvect = %d, nbfork = %d\n", MyTrees[0].MyCoevolData[0].theTVector.nvect, MyTrees[0].MyCoevolData[0].theTVector.nbfork);
+    // exit(1);
 
 	if(verbose){
-		printf("tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", maxforest>1?f:t,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, MyTrees[0].MyCoevolData[0].theTVector.nbfork>forkmax?(int)pow(2,forkmax)*3: (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
-		print_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, MyTrees[0].MyCoevolData[0].nbranches, stdout);
+		fprintf(stderr, "tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", maxforest>1?f:t,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, MyTrees[0].MyCoevolData[0].theTVector.nbfork>forkmax?(int)pow(2,forkmax)*3: (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
+		print_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, MyTrees[0].MyCoevolData[0].nbranches, stderr);
 	}
 
 	MyTrees[0].IS_epocs[0] = MyTrees[0].IS_epocs[1] = 0;									// Initial states
@@ -473,51 +440,21 @@ int main( int argc , char **argv)
 	MyTrees[0].jmax_epocs=0;																// Initializing the initial state value of e2 (updated if -I chosen)
 	MyTrees[0].o2=malloc(sizeof(int)*ntree);												// Allocating memory for the ids of the tvectors
 	MyTrees[0].lik_epocs=0;																	// Initializing the maximum likelihood value
-
-	/* Computing the maximum likelihood	*/
-	ML_multi(MyTrees[0].MyCoevolData, ntree, &MyTrees[0].lik_epocs, rate, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, scenario, MyTrees[0].maxForkVector, 0, MyTrees[0].forkVector, MyTrees[0].o2, &MyTrees[0].imax_epocs, &MyTrees[0].jmax_epocs, opt_IS, 0);
-
-	fprintf(stdout,"IS={%d,%d} : ",MyTrees[0].imax_epocs,MyTrees[0].jmax_epocs);
-	fprintf(stdout,"lnML = %.10f ML=%.5g\n",MyTrees[0].lik_epocs,exp(MyTrees[0].lik_epocs));
-
-	fprintf(stdout,"%10c", ' ');
-	fprintf(stdout,"%14s %14s %14s %14s\n","mu", "mu*", "nu", "nu*");
-
-	for (i = 0; i < 2; i++){
-
-		  fprintf(stdout,"event[%d]:",(i==0)?evti+1:evtj+1);
-
-		  for (j = 0; j < 4; j++){
-
-			if(MyTrees[0].final_rates_epocs[i][j]>=0)
-			{
-				if(MyTrees[0].final_rates_epocs[i][j] >= MAX_MU){
-				  fprintf(stdout, "%14.5g+",MyTrees[0].final_rates_epocs[i][j]>MAX_MU?MAX_MU:MyTrees[0].final_rates_epocs[i][j]);
-				}
-				else{
-				  fprintf(stdout, "%15.5g", MyTrees[0].final_rates_epocs[i][j]);
-				}
-			}
-			else{
-			  fprintf(stdout, "%15c",'?');
-			}
-		  }
-		  putchar('\n');
-	  } // end of for (i = 0; i < 2; i++)
-
-	printf("\n");
+	//
+	// /* Computing the maximum likelihood	*/
+	// ML_multi(MyTrees[0].MyCoevolData, ntree, &MyTrees[0].lik_epocs, rate, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, scenario, MyTrees[0].maxForkVector, 0, MyTrees[0].forkVector, MyTrees[0].o2, &MyTrees[0].imax_epocs, &MyTrees[0].jmax_epocs, opt_IS, 0);
 
 	int total_acceptance=0;
-	double *MCMC_round=NULL;
 
-	// int Nrounds=100000;
-	// MCMC_round = malloc(sizeof(double)*Nrounds);
+	int w_value=5;
+	int sampling=1;
+	if (Nrounds>100000)
+		sampling=50;
 
-	// MCMC(MyTrees[0].MyCoevolData, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, 10000, 5);
-	// MCMC(MyTrees[0].MyCoevolData, MCMC_round, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, 5, &total_acceptance);
-	// printf("total_acceptance = %d\n", total_acceptance);
-
-	MCMC2(MyTrees[0].MyCoevolData, MCMC_round, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, 5, &total_acceptance);
+    // printf("o2 = %d\n", MyTrees[0].o2[0]);
+    // exit(1);
+	MCMC2(MyTrees[0].MyCoevolData, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, w_value, &total_acceptance, sampling);
+	// MCMC3(MyTrees[0].MyCoevolData, MCMC_round, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, w_value, &total_acceptance);
 	// printf("total_acceptance = %d\n", total_acceptance);
 
 	// printf("MCMC chain\n");

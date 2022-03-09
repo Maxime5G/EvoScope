@@ -308,6 +308,7 @@ int main( int argc , char **argv)
 	*/
 
 	MyTrees = ParseInputForest( argc, optind, argv, infile, verbose, &nevt, &ntree, &forestntree, 0, 0 );
+	srand(time(NULL)); // if needed to allocate random tvectors
 
 	/*
 		Setting the total number of events in nevt. Make sure that the number of events is consistent across multiple trees accordingly.
