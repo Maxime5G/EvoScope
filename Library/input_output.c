@@ -860,6 +860,7 @@ char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput){
 	// 4 = epics output file - multi tree results - significant pairs
 	// 5 = epics output file - summary of forest output
 	// 6 = epocs output file - summary of forest output
+	// 7 = epocs_mcmc output file
 
 	switch(whichOutput){
 		case 0:
@@ -888,6 +889,10 @@ char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput){
 
 		case 6:
 			sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, scen);
+			break;
+
+		case 7:
+			sprintf(MyOutputName, "%s/%s_epocs_mcmc.tab", pref, cond?pref:basename);
 			break;
 
 		default:

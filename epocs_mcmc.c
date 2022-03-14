@@ -112,7 +112,6 @@ void PrintHelp(char *s)
 	fprintf(stderr," [input options] \n");
 	fprintf(stderr,"   -1 <event 1>: set the first event id (integer) to be tested \n");
 	fprintf(stderr,"   -2 <event 2>: set the second event id (integer) to be tested \n");
-	fprintf(stderr,"   -R <filename>: input filename containing significant events to run (epics format)\n");
     fprintf(stderr,"   -N <integer>: set the number of rounds for the MCMC chain. Default is 100,000\n\n");
 
 	fprintf(stderr," [output options] \n");
@@ -122,26 +121,7 @@ void PrintHelp(char *s)
 
 	fprintf(stderr," [ML options] \n");
 	fprintf(stderr,"   -C   : Maximum number of co-occurrences to consider in the analysis. Default is 10\n");
-	fprintf(stderr,"   -I   : evaluate the Initial State (otherwise, assume <0,0>)\n");
 
-	fprintf(stderr," [scenario selection] \n");
-	fprintf(stderr,"   -S # : depending on the value of #, a different scenario is evaluated\n");
-	fprintf(stderr,"      1 : 1 parameter: mu\n");
-	fprintf(stderr,"      i : 2 parameters: mu1, mu2 (H0)\n");
-	fprintf(stderr,"      x : 2 parameters: mu, lambda -- modified rates are mu*lambda --\n");
-	fprintf(stderr,"      u : 3 parameters: mu1, nu1, mu2\n");
-	fprintf(stderr,"      U : 3 parameters: mu1, mu2, nu2\n");
-	fprintf(stderr,"      X : 3 parameters: mu, lambda, kappa --mu*lambda*kappa--\n");
-	fprintf(stderr,"      r : 3 parameters: mu1, mu2, lambda (reciprocal induction: E1<->E2) -- modified rates are mu[12]*lambda --\n");
-	fprintf(stderr,"      a : 3 parameters: mu1, mu2, mu2* (one-way induction: E1->E2)\n");
-	fprintf(stderr,"      b : 3 parameters: mu1, mu1*, mu2 (one-way induction: E2->E1)\n");
-	fprintf(stderr,"      l : 4 parameters: mu1, mu1*, mu2, mu2* (induction both ways)\n");
-	fprintf(stderr,"      I : 4 parameters: mu1, mu2, nu1, nu2 (state dependance, no induction)\n");
-	fprintf(stderr,"      R : 4 parameters: mu1, mu2, lambda, kappa (reciprocal induction: E1<->E2, and state dependance) --mu[12]*lambda*kappa--\n");
-	fprintf(stderr,"      A : 5 parameters: mu1, mu2, mu2*, kappa1, kappa2 (one-way induction: E1->E2)\n");
-	fprintf(stderr,"      B : 5 parameters: mu1, mu1*, mu2, kappa1, kappa2 (one-way induction: E2->E1)\n");
-	fprintf(stderr,"      L : 6 parameters: mu1, mu1*, kappa1, mu2, mu2*, kappa2 (induction + state dependance)\n");
-	fprintf(stderr," default: 8 parameters: mu1, mu1*, nu1, nu1*, mu2, mu2*, nu2, nu2*\n");
 	fprintf(stderr,"\n");
 
 }
@@ -149,19 +129,13 @@ void PrintHelp(char *s)
 int main( int argc , char **argv)
 {
 	char *s=NULL,
-	     opt_IS=0,
 	     *outgroup=NULL;
-
-	char scenario='8';               // the selected scenario. By default, it is the full-model (8 params)
 
 	Node *init_tree=NULL;
 
 	char output_prefix[1000]="out"; 	/* default output prefix           */
     char *fname=NULL; 					/* output file name 			   */
     FILE *fptr; 						/* pointer to open the output file */
-	char *input_events_file=NULL;		/* pointer to open input event to run */
-	int **input_events=NULL;			/* array of events to run */
-	int filelength=0;					/* length of the array of events to run */
 	char * infile=NULL;
 
 	int verbose=0;
@@ -181,16 +155,16 @@ int main( int argc , char **argv)
 		f,						/* the forest counter	*/
 		forkmax=10;				/* maximum number of forks allowed	*/
 
-	struct Trees *MyTrees=NULL;	/* initializing the forest	*/
+	struct Trees *MyTrees=NULL;	/* initializing the trees structure	*/
 	int *forestntree=NULL;
 
-	double rate[2][4];
-    int Nrounds=100000;
+	double rate[2][4];			/* initializing the rate vector	*/
+    int Nrounds=100000;			/* number of MCMC rounds	*/
 
 	/*
 		Recursive catching of command line arguments
 	*/
-	while ((carg = getopt(argc, argv, "1:2:VO:R:N:ehmtTvS:If:C:")) != -1)
+	while ((carg = getopt(argc, argv, "1:2:VO:N:ehtTvf:C:")) != -1)
 	{
 
 		switch ((char)carg) {
@@ -232,14 +206,6 @@ int main( int argc , char **argv)
             }
             break;
 
-			case 'R':
-                input_events_file=(char *)malloc((strlen(optarg)+1)*sizeof(char));
-				if (!(strcpy(input_events_file, optarg))){
-                    fprintf(stderr, "Cannot read input file or too long name (reading %s)\n", optarg);
-                    fprintf(stderr, "    setting it to none\n");
-                }
-                break;
-
 			case 'C':
 				if (sscanf(optarg, "%d", &(forkmax)) != 1){
 					fprintf(stderr, "cannot read your co-occurrence level. Please enter an integer. \n");
@@ -261,15 +227,6 @@ int main( int argc , char **argv)
 
 			case 'h':
 				PrintHelp(argv[0]), exit(0);
-
-			case 'S':
-				scenario = *optarg;
-
-				break;
-
-			case 'I':
-				opt_IS = 1;
-				break;
 
 			case 'f':
 				infile=optarg;
@@ -296,7 +253,6 @@ int main( int argc , char **argv)
         fprintf(stderr, "You did not select two events, setting by default 1 vs 2\n");
         choice_e1=1;
         choice_e2=2;
-        // fprintf(stderr, "ERROR: please input two events to select!\n"), exit(1);
 	}
 
 	if ((choice_e1 && choice_e2) && (choice_e2 <= choice_e1)){
@@ -352,7 +308,7 @@ int main( int argc , char **argv)
 				print_arbre(MyTrees[t].MyCoevolData[f].root, stderr);
 			}
 		}
-		printf("\n");
+		fprintf(stderr,"\n");
 	}
     if (maxforest>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
     if (ntree>1){fprintf(stderr, "Please input only a single tree. Exiting...\n"), exit(1);}
@@ -360,14 +316,9 @@ int main( int argc , char **argv)
 	/* --- FILE INITIALIZATIONS ---	*/
 
 	/* Opening the output file and writing the header */
-	fname = initializeNewFile(output_prefix, scenario, "", 0);				/* create the string for the output file and */
-
+	fname = initializeNewFile(output_prefix, '\0', "", 7);				/* create the string for the output file and */
+	printf("fname = %s\n", fname);
 	fptr=fopen(fname, "w");													/* opening it */
-
-	fprintf(fptr, "%-10s\t%-10s\t%-10s\t%-5s\t%-14s\t%-14s\t%-4s\t%-4s\t%-4s\t%-4s\t%-4s\t%-4s\t%-4s\t%-4s\n", "Event1", "Event2", "Tree", "Model", "lnML", "ML", "mu1", "mu1star", "nu1", "nu1star", "mu2", "mu2star", "nu2", "nu2star");
-
-	/* Verifying if the user gave an input file of significant events to run. If yes, store the events */
-	/* in an nx2 array. */
 
 	/*
 		VERBOSE - printing the changes made to some nodes (e.g., missing events are now 0/0/...)
@@ -402,7 +353,6 @@ int main( int argc , char **argv)
 	fprintf(stderr, "/*\n\t** epocs_mcmc header **\n\n");
 	fprintf(stderr, "\toutgroup is '%s'\n", outgroup);
 	fprintf(stderr, "\ttreefile is '%s'\n", (infile)?infile:((argc == optind + 2)?argv[optind+1]:NULL));
-	fprintf(stderr, "\tchosen scenario is '%c'\n", scenario);
 	fprintf(stderr, "*/\n");
 
     evti = choice_e1-1<0?0:choice_e1-1;
@@ -418,16 +368,9 @@ int main( int argc , char **argv)
 
 	MyTrees[0].MyCoevolData[0].theTVector.current_vector = calloc((size_t)MyTrees[0].MyCoevolData[0].nbranches, sizeof(size_t)); // allocating the initial tvector
 
-	MyTrees[0].MyCoevolData[0].theTVector.tvector = genere_all_vector_types(MyTrees[0].MyCoevolData[0].root, MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, (char **)NULL, &MyTrees[0].MyCoevolData[0].theTVector.nvect); 	// filling all tvectors
+	MyTrees[0].MyCoevolData[0].theTVector.tvector = genere_single_vector(MyTrees[0].MyCoevolData[0].root, MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, (char **)NULL, &MyTrees[0].MyCoevolData[0].theTVector.nvect); 	// filling all tvectors
 
-	MyTrees[0].MyCoevolData[0].theTVector.current_vector = MyTrees[0].MyCoevolData[0].theTVector.tvector;
-
-	MyTrees[0].MyCoevolData[0].theTVector.nvect=0; 																	 // recounting the number of tvectors
-	count_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, &MyTrees[0].MyCoevolData[0].theTVector.nvect); // actual counting
 	MyTrees[0].maxForkVector[0] = MyTrees[0].MyCoevolData[0].theTVector.nvect; 										 // storing the number of tvectors
-
-    // printf("nvect = %d, nbfork = %d\n", MyTrees[0].MyCoevolData[0].theTVector.nvect, MyTrees[0].MyCoevolData[0].theTVector.nbfork);
-    // exit(1);
 
 	if(verbose){
 		fprintf(stderr, "tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", maxforest>1?f:t,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, MyTrees[0].MyCoevolData[0].theTVector.nbfork>forkmax?(int)pow(2,forkmax)*3: (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
@@ -440,30 +383,20 @@ int main( int argc , char **argv)
 	MyTrees[0].jmax_epocs=0;																// Initializing the initial state value of e2 (updated if -I chosen)
 	MyTrees[0].o2=malloc(sizeof(int)*ntree);												// Allocating memory for the ids of the tvectors
 	MyTrees[0].lik_epocs=0;																	// Initializing the maximum likelihood value
-	//
-	// /* Computing the maximum likelihood	*/
-	// ML_multi(MyTrees[0].MyCoevolData, ntree, &MyTrees[0].lik_epocs, rate, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, scenario, MyTrees[0].maxForkVector, 0, MyTrees[0].forkVector, MyTrees[0].o2, &MyTrees[0].imax_epocs, &MyTrees[0].jmax_epocs, opt_IS, 0);
 
-	int total_acceptance=0;
+	int total_acceptance=0;	/* Not really used now...	*/
 
-	int w_value=5;
-	int sampling=1;
-	if (Nrounds>100000)
-		sampling=50;
+	int w_value=5;			/* When MCMC exploring, size of the window	*/
+	int sampling=1;			/* Sampling every MCMC round	*/
+	if (Nrounds>100000)		/* Except when N rounds > 100k	*/
+		sampling=50;		/* Sampling every 50 rounds	*/
 
-    // printf("o2 = %d\n", MyTrees[0].o2[0]);
-    // exit(1);
-	MCMC2(MyTrees[0].MyCoevolData, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, w_value, &total_acceptance, sampling);
-	// MCMC3(MyTrees[0].MyCoevolData, MCMC_round, ntree, MyTrees[0].final_rates_epocs, MyTrees[0].IS_epocs, MyTrees[0].o2[0], Nrounds, w_value, &total_acceptance);
-	// printf("total_acceptance = %d\n", total_acceptance);
+	fprintf(stderr, "Processing...\n\n");
+	MCMC2(MyTrees[0].MyCoevolData, MyTrees[0].IS_epocs, Nrounds, w_value, &total_acceptance, sampling, fptr);
 
-	// printf("MCMC chain\n");
-	// for (int i=0; i<Nrounds; i++){
-	// 	printf ("%f\n", MCMC_round[i]);
-	// }
-	// printf("\n");
+	fclose(fptr);
 
-	// printf("here\n");
+	fprintf(stderr, "Finished! Results written in file: %s!\n\n", fname);
 
 	for (f=0; f<maxforest; f++){
 		FreeCoevolData(MyTrees[f].MyCoevolData, ntree, 0, 0);
@@ -477,10 +410,5 @@ int main( int argc , char **argv)
 
 	if (s) free(s);
 	if (init_tree) FreeMultiTree(init_tree, nbleaves);
-	if (input_events){
-		freeArray(input_events, filelength);
-		free(input_events_file);
-	}
-	// free(MCMC_round);
 	return 0;
 }

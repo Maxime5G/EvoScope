@@ -526,6 +526,43 @@ void add_random_vector_types_ok(char **ts, int last_branch, int maximumTvectors)
 }
 
 
+/* ------------------------------------------------------------------ */
+/* generation of a single tvector 1->2 for epocs MCMC 		          */
+/* ------------------------------------------------------------------ */
+
+char **genere_single_vector(Node *n, int last_branch, int nbfork , char **ts, int *nvect)
+{
+	int i;
+	char *ns;
+
+	/* at the root, nothing to compute, just call childs  */
+	/* DEBUG: fprintf(stderr, "node id=%d ev=%d last branch=%d\n",n->id,n->evtype, last_branch); */
+
+	if (n->id == 0) {
+		/* allocate an array of 1000 (forward, backward, 998 random) + 1 (stop signal)	*/
+		*nvect = 1;
+
+		if ((ts = (char **)calloc((size_t) *nvect, sizeof(char *))) == NULL) {
+			fprintf(stderr,"genere_dual_vector_types: Not enough memory\n");exit(3);}
+
+		/* allocating the two arrays directly	*/
+		if ((ns = (char *)calloc((size_t)last_branch, sizeof(char))) == NULL) {
+			fprintf(stderr,"genere_dual_vector_types: Not enough memory\n");exit(3);}
+
+		ts[0]=ns;
+	}
+	else {
+		ts[0][n->id-1]=n->evtype;
+	}
+
+	/* call the descendants */
+	for ( i = 0; i < n->nbdesc; i++) {
+		genere_single_vector(n->descs[i], last_branch, nbfork, ts, nvect);
+	}
+
+	return ts;
+}
+
 /* ----------------------------------------------------------------------------	*/
 /* change les noms de feuilles et de noeud de maniere a avoir les evenements	*/
 /* polymorphes inscrits dans les noms de feuilles et de noeud internes		*/

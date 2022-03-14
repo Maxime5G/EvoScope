@@ -92,6 +92,7 @@ int set_evt_type_count_fork_gaps(Node *n, int nevt, int evti, int evtj, int verb
 int verif_polymorphism(Node *n, int *v_evt, int nevt);
 char **genere_all_vector_types(Node *n, int last_branch, int nbfork, char **ts, int *nvect);
 char **genere_dual_vector_types(Node *n, int last_branch, int nbfork , char **ts, int *nvect);
+char **genere_single_vector(Node *n, int last_branch, int nbfork , char **ts, int *nvect);
 void add_random_vector_types(char **ts, int last_branch, int nbfork, int maximumTvectors);
 void add_random_vector_types_ok(char **ts, int last_branch, int maximumTvectors);
 void print_vector_types(char **ts, int len, FILE *fout);
