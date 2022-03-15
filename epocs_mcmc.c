@@ -317,7 +317,6 @@ int main( int argc , char **argv)
 
 	/* Opening the output file and writing the header */
 	fname = initializeNewFile(output_prefix, '\0', "", 7);				/* create the string for the output file and */
-	printf("fname = %s\n", fname);
 	fptr=fopen(fname, "w");													/* opening it */
 
 	/*
