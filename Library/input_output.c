@@ -833,7 +833,86 @@ double * ComputeLikelihoodDistribution(struct Trees *MyForest, int ntrees, int i
 /* will contain the results of epocs.					   */
 /* To parse the input later on, the scenario is in the header */
 
+/* DISCLAIMER: Some systems, e.g. mac, do not allow to have the same output names	*/
+/* even between capitalized and non-capitalized letters. As such, capitalized	*/
+/* scenarios have a "2" after the scenario id, non-capitalized have a 1.	*/
 char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput){
+
+    static char MyOutputName[1000]="";
+	char *basename;
+	char cond=1;
+
+    struct stat st = {0};
+
+	if (strrchr(pref, '/')){
+		cond=0;
+		basename=strrchr(pref, '/')+1;
+	}
+
+	/* I'm checking whether the output folder exists 			 */
+	/* if no, I'm creating it so that I can create a file inside */
+    if (stat(pref, &st) == -1) {
+        mkdir(pref, 0700);
+    }
+
+	// switch on whichOutput
+	// 0 = epocs output file
+	// 1 = epics output file
+	// 2 = epics output file - only significant pairs
+	// 3 = epics output file - multi tree results
+	// 4 = epics output file - multi tree results - significant pairs
+	// 5 = epics output file - summary of forest output
+	// 6 = epocs output file - summary of forest output
+	// 7 = epocs mcmc output file
+
+	switch(whichOutput){
+		case 0:
+			if (scen >= 'a' && scen <= 'z')
+		    	sprintf(MyOutputName, "%s/%s_mat_epocs_%c1.tab", pref, cond?pref:basename, scen);
+			else
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c2.tab", pref, cond?pref:basename, scen);
+			break;
+
+		case 1:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 2:
+			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 3:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 4:
+			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 5:
+			sprintf(MyOutputName, "%s/%s_mat_epics_%s_forest.tab", pref, cond?pref:basename, matID);
+			break;
+
+		case 6:
+			if (scen >= 'a' && scen <= 'z')
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c1_forest.tab", pref, cond?pref:basename, scen);
+			else
+				sprintf(MyOutputName, "%s/%s_mat_epocs_%c2_forest.tab", pref, cond?pref:basename, scen);
+			break;
+
+		case 7:
+			sprintf(MyOutputName, "%s/%s_epocs_mcmc.tab", pref, cond?pref:basename);
+			break;
+
+		default:
+			fprintf(stderr, "initializeNewFile -> option:<%d> unknown... exiting", whichOutput);
+			exit(1);
+	}
+    return MyOutputName;
+
+}
+
+char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput){
 
     static char MyOutputName[1000]="";
 	char *basename;
@@ -893,77 +972,6 @@ char * initializeNewFile(char * pref, char scen, char *matID, int whichOutput){
 
 		case 7:
 			sprintf(MyOutputName, "%s/%s_epocs_mcmc.tab", pref, cond?pref:basename);
-			break;
-
-		default:
-			fprintf(stderr, "initializeNewFile -> option:<%d> unknown... exiting", whichOutput);
-			exit(1);
-	}
-    return MyOutputName;
-
-}
-
-char * initializeNewFileOLD(char * pref, char scen, char *matID, int whichOutput){
-
-    static char MyOutputName[1000]="";
-	char *basename;
-	char cond=1;
-
-    struct stat st = {0};
-
-	if (strrchr(pref, '/')){
-		cond=0;
-		basename=strrchr(pref, '/')+1;
-	}
-
-	/* I'm checking whether the output folder exists 			 */
-	/* if no, I'm creating it so that I can create a file inside */
-    if (stat(pref, &st) == -1) {
-        mkdir(pref, 0700);
-    }
-
-	// switch on whichOutput
-	// 0 = epocs output file
-	// 1 = epics output file
-	// 2 = epics output file - only significant pairs
-	// 3 = epics output file - multi tree results
-	// 4 = epics output file - multi tree results - significant pairs
-	// 5 = epics output file - summary of forest output
-	// 6 = epocs output file - summary of forest output
-
-	switch(whichOutput){
-		case 0:
-			if (scen >= 'a' && scen <= 'z')
-		    	sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c.tab", pref, cond?pref:basename, scen, scen);
-			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c.tab", pref, cond?pref:basename, scen);
-			break;
-
-		case 1:
-			sprintf(MyOutputName, "%s/%s_mat_epics_%s.tab", pref, cond?pref:basename, matID);
-			break;
-
-		case 2:
-			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s.tab", pref, cond?pref:basename, matID);
-			break;
-
-		case 3:
-			sprintf(MyOutputName, "%s/%s_mat_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
-			break;
-
-		case 4:
-			sprintf(MyOutputName, "%s/%s_mat_signif_epics_%s_multitree.tab", pref, cond?pref:basename, matID);
-			break;
-
-		case 5:
-			sprintf(MyOutputName, "%s/%s_mat_epics_%s_forest.tab", pref, cond?pref:basename, matID);
-			break;
-
-		case 6:
-			if (scen >= 'a' && scen <= 'z')
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c%c_forest.tab", pref, cond?pref:basename, scen, scen);
-			else
-				sprintf(MyOutputName, "%s/%s_mat_epocs_%c_forest.tab", pref, cond?pref:basename, scen);
 			break;
 
 		default:

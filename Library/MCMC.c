@@ -115,7 +115,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
     current_value = log(1) + ln_vraisemblance(MyEpocsData[0].root, tvector, current, IS); // If uniform distribution, prior is 1
 
     which_cooc = 0;
-    fprintf(fptr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "state","log-posterior","mu1","mu1*","mu2","mu2*","nu1","nu1*","nu2","nu2*","tvector");
+    fprintf(fptr, "%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\t%s\n", "state","log-posterior","mu1","mu1star","mu2","mu2star","nu1","nu1star","nu2","nu2star","tvector");
 
     fprintf(stderr, "[");
 
