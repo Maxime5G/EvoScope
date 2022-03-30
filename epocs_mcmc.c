@@ -112,15 +112,13 @@ void PrintHelp(char *s)
 	fprintf(stderr," [input options] \n");
 	fprintf(stderr,"   -1 <event 1>: set the first event id (integer) to be tested \n");
 	fprintf(stderr,"   -2 <event 2>: set the second event id (integer) to be tested \n");
-    fprintf(stderr,"   -N <integer>: set the number of rounds for the MCMC chain. Default is 100,000\n\n");
+    fprintf(stderr,"   -N <integer>: set the number of rounds for the MCMC chain. Default is 100,000\n");
+	fprintf(stderr,"   -S <sampling>: set the intervals for sampling the MCMC chain. Default is sampling at every iteration.\n\n");
 
 	fprintf(stderr," [output options] \n");
 	fprintf(stderr,"   -O: <output>: set a value for the output folder and files prefixes [default: out]\n");
 	fprintf(stderr,"   -v: (verbose) outputs running progression of the program\n");
 	fprintf(stderr,"   -V: (very verbose) outputs running progression of the program and more...\n\n");
-
-	fprintf(stderr," [ML options] \n");
-	fprintf(stderr,"   -C   : Maximum number of co-occurrences to consider in the analysis. Default is 10\n");
 
 	fprintf(stderr,"\n");
 
@@ -153,7 +151,7 @@ int main( int argc , char **argv)
 		ntree=1,				/* the number of trees in input	*/
 		t,						/* the tree counter				*/
 		f,						/* the forest counter	*/
-		forkmax=10;				/* maximum number of forks allowed	*/
+		sampling=1;				/* the sampling frequency	*/
 
 	struct Trees *MyTrees=NULL;	/* initializing the trees structure	*/
 	int *forestntree=NULL;
@@ -164,7 +162,7 @@ int main( int argc , char **argv)
 	/*
 		Recursive catching of command line arguments
 	*/
-	while ((carg = getopt(argc, argv, "1:2:VO:N:ehtTvf:C:")) != -1)
+	while ((carg = getopt(argc, argv, "1:2:VO:N:ehtTvf:S:")) != -1)
 	{
 
 		switch ((char)carg) {
@@ -206,12 +204,12 @@ int main( int argc , char **argv)
             }
             break;
 
-			case 'C':
-				if (sscanf(optarg, "%d", &(forkmax)) != 1){
-					fprintf(stderr, "cannot read your co-occurrence level. Please enter an integer. \n");
-					fprintf(stderr, "setting it to default (10)\n");
-				}
-				break;
+			case 'S':
+			if (sscanf(optarg, "%d", &(sampling)) != 1){
+                fprintf(stderr, "cannot read the sampling number. Please enter an integer, exiting... \n"), exit(1);
+                fprintf(stderr, "    setting it to default (sampling every iteration)\n");
+            }
+            break;
 
 			case 'e':
 		   		output_state_vector = 1;
@@ -372,7 +370,7 @@ int main( int argc , char **argv)
 	MyTrees[0].maxForkVector[0] = MyTrees[0].MyCoevolData[0].theTVector.nvect; 										 // storing the number of tvectors
 
 	if(verbose){
-		fprintf(stderr, "tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", maxforest>1?f:t,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, MyTrees[0].MyCoevolData[0].theTVector.nbfork>forkmax?(int)pow(2,forkmax)*3: (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
+		fprintf(stderr, "tree: %d ; #branches: %d ; #cooccurences: %d #trees+events+root: %d\n", maxforest>1?f:t,  MyTrees[0].MyCoevolData[0].nbranches, MyTrees[0].MyCoevolData[0].theTVector.nbfork, (int)pow(2,MyTrees[0].MyCoevolData[0].theTVector.nbfork)*3);
 		print_vector_types(MyTrees[0].MyCoevolData[0].theTVector.tvector, MyTrees[0].MyCoevolData[0].nbranches, stderr);
 	}
 
@@ -386,9 +384,6 @@ int main( int argc , char **argv)
 	int total_acceptance=0;	/* Not really used now...	*/
 
 	int w_value=5;			/* When MCMC exploring, size of the window	*/
-	int sampling=1;			/* Sampling every MCMC round	*/
-	if (Nrounds>100000)		/* Except when N rounds > 100k	*/
-		sampling=50;		/* Sampling every 50 rounds	*/
 
 	fprintf(stderr, "Processing...\n\n");
 	MCMC2(MyTrees[0].MyCoevolData, MyTrees[0].IS_epocs, Nrounds, w_value, &total_acceptance, sampling, fptr);
@@ -400,10 +395,6 @@ int main( int argc , char **argv)
 	for (f=0; f<maxforest; f++){
 		FreeCoevolData(MyTrees[f].MyCoevolData, ntree, 0, 0);
 		if (MyTrees[f].o2)free(MyTrees[f].o2);
-		if(MyTrees[f].nbfork<=forkmax){
-			free(MyTrees[f].forkVector);
-			free(MyTrees[f].maxForkVector);
-		}
 	}
 	free(MyTrees);
 
