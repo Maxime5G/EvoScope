@@ -1,0 +1,362 @@
+#!/bin/bash
+# Writing a standard procedure from tip states to correlated evolution inference
+
+# Steps are as follows:
+# - states at the leaves in 1 file + phylogenetic tree w/ matching tip ids
+# - pastml - JOINT
+# - RSCRIPT: AnnotateATree_WithMasks_Clean.R
+# - Epics I
+# - Epocs i, a, b, l
+# - RSCRIPT: ParseEpocsFinal_WithLambda.R
+
+# FUNCTIONS
+
+help() {
+    cat << EOF
+Usage: ./Pipeline.sh [options]
+Options:
+    -t: tab-delimited file of traits at the leaves [mandatory]
+    -T: Phylogenetic tree in newick format [mandatory]
+    -O: Outgroup [Optional, default = no outgroup. format= "name1[:name2:name3:...]"]
+    -o: Output prefix [Optional, default = "out"]
+    -m: epics matrix [Optional, default=Identity]
+    -g: GWAS-like analysis [Optional, default runs all against all]
+    -f: full run [Optional, default runs until epics]
+    -p: Plotting the results [Optional, default does not output plot files]
+    -h: Display this help message
+EOF
+}
+
+verify_command() {
+    command -v "$1" > /dev/null 2>&1
+}
+
+verify_rpackage() {
+    R --slave -e "packageVersion('$1')" > /dev/null 2>&1
+}
+
+verify_all_dependencies() {
+    if verify_command epics; then
+        printf 'ok'
+    else
+        printf 'epics not installed'
+    fi
+
+    if verify_command epocs; then
+        printf 'ok'
+    else
+        printf 'epocs not installed'
+    fi
+
+    if verify_command pastml; then
+        printf 'ok'
+    else
+        printf 'pastml not installed'
+    fi
+
+    if verify_rpackage tidyverse; then
+        printf 'ok'
+    else
+        printf 'tidyverse not installed'
+    fi
+
+    if verify_rpackage gplots; then
+        printf 'ok'
+    else
+        printf 'gplots not installed'
+    fi
+}
+
+# OPTIONS
+
+tabfile=""
+treefile=""
+outputprefix=""
+full=0
+plot=0
+gwas=0
+scriptdir=`dirname "$0"`
+epicsmatrix="I" # Matrix of chronology - by default is identity
+
+while getopts t:T:O:o:m:gfph opt; do
+    case $opt in
+        t)
+            tabfile=$OPTARG
+            ;;
+        T)
+            treefile=$OPTARG
+            ;;
+        o)
+            outputprefix=$OPTARG
+            ;;
+        O)
+            outgroup=$OPTARG
+            ;;
+        f)
+            full=1
+            ;;
+        m)
+            epicsmatrix=$OPTARG
+            ;;
+        p)
+            plot=1
+            ;;
+        g)
+            gwas=1
+            ;;
+        h)
+            help; exit 0;
+            ;;
+        *)
+            help; exit 0;
+        esac
+    done
+
+# --- CHECKING COMMAND LINE ARGUMENTS ---
+
+checking_command_line_args() {
+
+    if [[ $tabfile == "" ]]; then
+        printf "WARNING: Missing character table, exiting...\n\n";
+        help;
+        exit 1;
+    fi
+
+    if [[ $treefile == "" ]]; then
+        printf "WARNING: Missing phylogenetic tree, exiting...\n\n";
+        help;
+        exit 1;
+    fi
+
+    if [ ! -e "$treefile" ]; then
+        printf "Tree '$treefile' does not exist! Exiting...\n\n"
+        help;
+        exit 1;
+    fi
+
+    if [ ! -e "$tabfile" ]; then
+        printf "File '$tabfile' does not exist! Exiting...\n\n"
+        help;
+        exit 1;
+    fi
+
+    if [[ $outputprefix == "" ]]; then
+        printf "Setting the output prefix to default (out)\n\n";
+        outputprefix="out";
+    fi
+
+    if [[ $gwas == 1 ]]; then
+        printf "You selected the gwas-like option.\n";
+        printf "Scoop will test event number 1 against all the others in the following!\n\n";
+    fi
+
+}
+
+# --- MAIN WRAPPERS ---
+
+pastml_wrapper() {
+
+    # Here: checking input tree - removing dots (better because easier to deal with the output name from pastml)
+    # Then running pastml
+
+    treefilenodot=`echo $treefile | sed 's#\.#_#g'`
+    cp $treefile $treefilenodot
+    basenametreefile=$(echo ${treefilenodot##*/})
+
+    # Extracting the eventIDs list - necessary for sorting later on
+    eventID=$outputprefix/$outputprefix"_eventIDs.in"
+    cat $tabfile | head -n1 | tr '\t' '\n' | tail -n "$(awk '{print NF-1}' $tabfile | head -n1)" > $eventID
+
+    # --- ANCESTRAL CHARACTER RECONSTRUCTION ---
+    # --- Tool: PastML, Model: Joint ---
+
+    nthread=1       # Number of threads to use - default: 1
+
+    outfolder=$outputprefix/$outputprefix"_ACRFOLDER"
+    outtab=$outputprefix/$outputprefix"_ACR.tab"
+    namedtree="$outfolder/named.tree_$basenametreefile.nwk"
+    cmdlines=$outputprefix/$outputprefix"_commandsUsed.tab"
+
+    # Verbose
+    printf 'Command: pastml -t '$treefilenodot' -d '$tabfile' -o '$outtab' --prediction_method JOINT --forced_joint --work_dir '$outfolder' --threads '$nthread' --offline\n\n' >> $cmdlines
+    # Actual command
+    pastml -t $treefilenodot -d $tabfile -o $outtab --prediction_method JOINT --forced_joint --work_dir $outfolder --threads $nthread --offline
+
+}
+
+rscript1_wrapper(){
+
+    # --- RECONSTRUCTING THE MUTATIONS ON THE TREE ---
+    # --- Rscript: AnnotateATreeForEpoics.R ---
+    # --- Arguments: - Named tree from pastml
+    #                - Tab-delimited file from pastml
+    #                - Output phylogenetic tree with mutations reconstructed
+    #                - Output tab-delimited file with mutations reconstructed
+
+    matACR=$outputprefix/$outputprefix"_ACR_clean.mat"
+    epoicsTree=$outputprefix/$outputprefix"_ACR_tree.nwk"
+
+    # Verbose
+    printf 'Command: Rscript '$scriptdir'/Scripts/AnnotateATree_WithMasks_Clean.R '$namedtree' '$outtab' '$epoicsTree' '$matACR' '$eventID'\n\n' >> $cmdlines
+
+    # Actual command
+    Rscript $scriptdir/Scripts/AnnotateATree_WithMasks_Clean.R $namedtree $outtab $epoicsTree $matACR $eventID
+
+    # --- EXTRACTING THE TRAIT IDS ---
+    # --- Instead of displaying e1, e2 etc in epics
+    # --- Display the trait ids that are the column ids in the input table
+    # --- Saving the ids in a 1-column file "eventIDs.in"
+
+    # Extracting the event IDs for epics afterwards
+
+}
+
+epics_wrapper(){
+
+    # --- EPICS OPTIONS ---
+    # --- VERSION 1.0: - Matrix identity
+    #                  - All-vs-all
+
+    # epicsevents=0   # 0: all vs all, N [1-nevt]: GWAS-like analysis (1 vs all - WIP)
+
+    epoicsOutput=$outputprefix/$outputprefix"_correlations"
+
+    if [[ $gwas -eq 0 ]]
+    then
+        # Verbose
+        printf 'Command: '$scriptdir'/epics -E '$eventID' -T 0.05 -O '$epoicsOutput' -'$epicsmatrix' "'$outgroup'" '$epoicsTree'\n\n' >> $cmdlines
+
+        # Actual command
+        $scriptdir/epics -E $eventID -T 0.05 -O $epoicsOutput -$epicsmatrix "$outgroup" $epoicsTree
+    else
+        # Verbose
+        printf 'Command: '$scriptdir'/epics -1 1 -E '$eventID' -T 0.05 -O '$epoicsOutput' -'$epicsmatrix' "'$outgroup'" '$epoicsTree'\n\n' >> $cmdlines
+
+        # Actual command
+        $scriptdir/epics -1 1 -E $eventID -T 0.05 -O $epoicsOutput -$epicsmatrix "$outgroup" $epoicsTree
+    fi
+
+}
+
+epocs_wrapper(){
+
+    # --- EPOCS OPTIONS ---
+    # --- INPUT FILE: epics significant pairs
+    # --- ARGUMENTS: Models to test are: -i [independence model - no state-dependent rates]
+    #                                    -a [induction 1 -> 2 - no state-dependent rates]
+    #                                    -b [induction 2 -> 1 - no state-dependent rates]
+    #                                    -l [reciprocal induction 1 <-> 2 - no state-dependent rates]
+
+    basenameepicsfile=$(echo ${epoicsOutput##*/})
+    epicsSignif=$epoicsOutput/$basenameepicsfile"_mat_signif_epics_$epicsmatrix.tab"
+
+    # Verbose
+    printf 'Commands: '$scriptdir'/epocs -R '$epicsSignif' -O '$epoicsOutput' -Si "'$outgroup'" '$epoicsTree'\n' >> $cmdlines
+    printf '          '$scriptdir'/epocs -R '$epicsSignif' -O '$epoicsOutput' -Sa "'$outgroup'" '$epoicsTree'\n' >> $cmdlines
+    printf '          '$scriptdir'/epocs -R '$epicsSignif' -O '$epoicsOutput' -Sb "'$outgroup'" '$epoicsTree'\n' >> $cmdlines
+    printf '          '$scriptdir'/epocs -R '$epicsSignif' -O '$epoicsOutput' -Sl "'$outgroup'" '$epoicsTree'\n\n' >> $cmdlines
+
+    # Actual commands
+    $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Si "$outgroup" $epoicsTree
+    $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sa "$outgroup" $epoicsTree
+    $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sb "$outgroup" $epoicsTree
+    $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sl "$outgroup" $epoicsTree
+}
+
+rscript2_wrapper(){
+    # --- RETRIEVING THE BEST MODEL ---
+    # --- RSCRIPT: ParseEpocsFinal_WithLambda.R ---
+    # --- Arguments: The output prefix (i.e., folder where all files are saved)
+    #                The event ids (optional - but in the pipeline should work)
+
+    # # Verbose
+    # printf 'Retrieving the best model from epocs\n'
+    printf 'Command: Rscript '$scriptdir'/Scripts/ParseEpocsFinal_WithLambda.R '$epoicsOutput' '$eventID'\n\n' >> $cmdlines
+
+    # Actual command
+    Rscript $scriptdir/Scripts/ParseEpocsFinal_WithLambda.R $epoicsOutput $eventID
+}
+
+plot_wrapper(){
+    # --- OUTPUT 1: LK Graph ---
+    # --- Plotting the LK gains for the best pair (i.e., lowest p-value)
+
+    epocsLRT=$epoicsOutput/$basenameepicsfile"_LRT.tab"
+    epocsConc=$epoicsOutput/$basenameepicsfile"_ConcatenatedResults.tab"
+    printf 'Command: Rscript '$scriptdir'/Scripts/PlotIn2D.R '$epoicsOutput' '$epocsLRT' '$epocsConc' all\n\n' >> $cmdlines
+    Rscript $scriptdir/Scripts/PlotIn2D.R $epoicsOutput $epocsLRT $epocsConc all
+
+
+    # --- OUTPUT 2: CYTOSCAPE ---
+
+    epocsBestModel=$epoicsOutput/$basenameepicsfile"_BestModel.tab"
+    cytoscapeFile=$epoicsOutput/$basenameepicsfile"_Cytoscape.tab"
+    printf "source\ttarget\tinteraction\tWeight\n" > $cytoscapeFile
+
+    if [ ! -e "$eventID" ]; then
+        cut -f 1,2,7,9 $epocsBestModel | tail -n "$(awk 'END{print NR-1}' $epocsBestModel)" >> $cytoscapeFile
+    fi
+
+    if [ -e "$eventID" ]; then
+        cut -f 1,2,7,11 $epocsBestModel | tail -n "$(awk 'END{print NR-1}' $epocsBestModel)" >> $cytoscapeFile
+    fi
+}
+
+# MAIN
+
+main(){
+
+    # --- verifying the inputs from the user ---
+    checking_command_line_args
+
+    # --- creating the output folder ---
+
+    mkdir -p $outputprefix
+
+    stderroutput=$outputprefix"/"$outputprefix'_stderr.err'
+    stdoutoutput=$outputprefix"/"$outputprefix'_stdout.out'
+
+    # --- Running pastml ---
+
+    # Verbose
+    printf 'Running pastml...\n'
+    pastml_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "pastml failed! Check the stderr file $stderroutput" ; exit 1; }
+
+    # --- Reconstructing the mutations on the branches of the tree ---
+
+    # Verbose
+    printf 'Reconstructing the mutations from the ACR...\n'
+    rscript1_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "mutation reconstructions failed! Check the stderr file $stderroutput" ; exit 1; }
+
+    # --- Running epics ---
+
+    # Verbose
+    printf 'Running epics...\n'
+    epics_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "epics failed! Check the stderr file $stderroutput" ; exit 1; }
+
+    if [[ $full -eq 0 ]]
+    then
+        printf 'End of pipeline at epics!\n'
+        exit 1;
+    fi
+
+    # --- Running epocs ---
+    printf 'Running epocs...\n'
+    epocs_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "epocs failed! Check the stderr file $stderroutput" ; exit 1; }
+
+    # --- Parsing the epocs results ---
+
+    # Verbose
+    printf 'Retrieving the best model from epocs...\n'
+    rscript2_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "final parsing failed! Check the stderr file $stderroutput" ; exit 1; }
+
+
+    # Verbose
+    if [[ $plot -eq 1 ]]
+    then
+        plot_wrapper >> $stdoutoutput 2>> $stderroutput || { echo "plotting failed! Check the stderr file $stderroutput" ; exit 1; }
+    fi
+
+}
+
+main

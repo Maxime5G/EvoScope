@@ -159,6 +159,7 @@ if (!(is.na(EvIds))){myEventsIds <- tibble (read.table(EvIds, header=F, stringsA
 
 # To evaluate if I have to run the script from inside the folder ('.' in myFolder variable)
 condition <- FALSE
+basename <- NA
 
 nullHypothesisModel <- 'i'
 

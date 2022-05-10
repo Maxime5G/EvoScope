@@ -1,4 +1,5 @@
 #include "tree.h"
+#include "coevol.h"
 #include <time.h>
 
 // Priors
