@@ -13,17 +13,17 @@
 
 help() {
     cat << EOF
-Usage: ./Pipeline.sh [options]
+Usage: ./scoop [options]
 Options:
-    -t: tab-delimited file of traits at the leaves [mandatory]
-    -T: Phylogenetic tree in newick format [mandatory]
-    -O: Outgroup [Optional, default = no outgroup. format= "name1[:name2:name3:...]"]
-    -o: Output prefix [Optional, default = "out"]
-    -m: epics matrix [Optional, default=Identity]
-    -g: GWAS-like analysis [Optional, default runs all against all]
-    -f: full run [Optional, default runs until epics]
-    -p: Plotting the results [Optional, default does not output plot files]
-    -h: Display this help message
+    -t [FILENAME]: tab-delimited file of traits at the leaves [mandatory]
+    -T [TREEFILE]: Phylogenetic tree in newick format [mandatory]
+    -O [OUTGROUP]: Outgroup [Optional, default = no outgroup. format= "name1[:name2:name3:...]"]
+    -o [PREFIX]  : Output prefix [Optional, default = "out"]
+    -m [MATRIX]  : epics matrix [Optional, default=Identity]
+    -g           : GWAS-like analysis [Optional, default runs all against all]
+    -f           : full run [Optional, default runs until epics]
+    -p           : Plotting the results [Optional, default does not output plot files]
+    -h           : Display this help message
 EOF
 }
 
