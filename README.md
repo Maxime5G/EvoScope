@@ -43,6 +43,7 @@ Options:
     -g           : GWAS-like analysis [Optional, default runs all against all]
     -f           : full run [Optional, default runs until epics]
     -p           : Plotting the results [Optional, default does not output plot files]
+    -s           : State-dependence analysis in epocs step [Optional, default not]
     -h           : Display this help message
 ```
 
@@ -230,7 +231,7 @@ To run a full scoop analysis, you can try the test data in the TestData folder l
 ./scoop -t TestData/ThreeWCPairs_forTests.tab -T TestData/align_cured_UbyT_2_tree_rooted -f
 ```
 
-Where here we want to have the full run. 
+Where here we want to have the full run.
 
 ## Questions?
 

@@ -23,6 +23,7 @@ Options:
     -g           : GWAS-like analysis [Optional, default runs all against all]
     -f           : full run [Optional, default runs until epics]
     -p           : Plotting the results [Optional, default does not output plot files]
+    -s           : State-dependence analysis in epocs step [Optional, default not]
     -h           : Display this help message
 EOF
 }
@@ -75,10 +76,11 @@ outputprefix=""
 full=0
 plot=0
 gwas=0
+statedep=0
 scriptdir=`dirname "$0"`
 epicsmatrix="I" # Matrix of chronology - by default is identity
 
-while getopts t:T:O:o:m:gfph opt; do
+while getopts t:T:O:o:m:gfphs opt; do
     case $opt in
         t)
             tabfile=$OPTARG
@@ -103,6 +105,9 @@ while getopts t:T:O:o:m:gfph opt; do
             ;;
         g)
             gwas=1
+            ;;
+        s)
+            statedep=1
             ;;
         h)
             help; exit 0;
@@ -202,13 +207,6 @@ rscript1_wrapper(){
     # Actual command
     Rscript $scriptdir/Scripts/AnnotateATree_WithMasks_Clean.R $namedtree $outtab $epoicsTree $matACR $eventID
 
-    # --- EXTRACTING THE TRAIT IDS ---
-    # --- Instead of displaying e1, e2 etc in epics
-    # --- Display the trait ids that are the column ids in the input table
-    # --- Saving the ids in a 1-column file "eventIDs.in"
-
-    # Extracting the event IDs for epics afterwards
-
 }
 
 epics_wrapper(){
@@ -246,6 +244,10 @@ epocs_wrapper(){
     #                                    -a [induction 1 -> 2 - no state-dependent rates]
     #                                    -b [induction 2 -> 1 - no state-dependent rates]
     #                                    -l [reciprocal induction 1 <-> 2 - no state-dependent rates]
+    #                                    -I [independence model - with state-dependent rates]
+    #                                    -A [induction 1 -> 2 - with state-dependent rates]
+    #                                    -B [induction 2 -> 1 - with state-dependent rates]
+    #                                    -L [reciprocal induction 1 <-> 2 - with state-dependent rates]
 
     basenameepicsfile=$(echo ${epoicsOutput##*/})
     epicsSignif=$epoicsOutput/$basenameepicsfile"_mat_signif_epics_$epicsmatrix.tab"
@@ -261,6 +263,14 @@ epocs_wrapper(){
     $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sa "$outgroup" $epoicsTree
     $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sb "$outgroup" $epoicsTree
     $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -Sl "$outgroup" $epoicsTree
+
+    if [[ $statedep == 1 ]]; then
+        printf "You selected tho perform the state-dependent analysis.\n";
+        $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -SI "$outgroup" $epoicsTree
+        $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -SA "$outgroup" $epoicsTree
+        $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -SB "$outgroup" $epoicsTree
+        $scriptdir/epocs -R $epicsSignif -O $epoicsOutput -SL "$outgroup" $epoicsTree
+    fi
 }
 
 rscript2_wrapper(){
