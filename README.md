@@ -95,8 +95,8 @@ The standard format to run epics is as follows
 
 Epics outputs two files of the form `[prefix]_mat_epics_[matrix].tab` and `[prefix]_mat_signif_epics_[matrix]`. The second file is of the same organization of the first file but contain only the significant pairs. The information is organized as follows:
 
-| IDe1 | IDe2 | Event1 | Event2 | Matrix | Pval | Nobs | Max
-| ----- | ------------- | --- | ------- | --- | ------- | --- | ------- | --- | ------- | ------- |
+| IDe1 | IDe2 | Event1 | Event2 | Matrix | Pval | Nobs | Max |
+| ---- | ---- | ------ | ------ | ------ | ---- | ---- | --- |
 | first event in pair | second event in pair | user supplied e1 ID | user supplied e2 ID | pairs matrix | p-value | number of observed ordered pairs | maximum possible order of pairs |
 
 ### Epocs
@@ -147,8 +147,8 @@ The standard format to run epocs is as follows
 
 epocs outputs one file per run, with the form `[prefix]_mat_epocs_[model][1-2].tab`. The number at the end reflects either a capitalized letter model (2) or not (1). This file naming is decided to work on case-insensitive filesystems such as MacOS. The content of the file is organized as follows"
 
-| Event1 | Event2 | Tree | Model | lnML | ML | nu1 | nu1star | nu2 | nu2star | nu1 | nu1star | nu2 | nu2star
-| ----- | ------------- | --- | ------- | --- | ------- | --- | ------- | --- | ------- | ------- |
+| Event1 | Event2 | Tree | Model | lnML | ML | nu1 | nu1star | nu2 | nu2star | nu1 | nu1star | nu2 | nu2star |
+| ------ | ------ | ---- | ----- | ---- | -- | --- | ------- | --- | ------- | --- | ------- | --- | ------- |
 | first event in pair | second event in pair | tree ID | model | log-likelihood | likelihood | param | param | param | param | param | param | param | param |
 
 
