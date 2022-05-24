@@ -82,7 +82,13 @@ normalizeAllSubtables <- function(theTable){
     return (theNormalizedTable)
 }
 
-if (length(args)!=4){stop("Rscript PlotIn2D.R [Prefix] [LRT] [ConcatenatedFile] [WhichMode (BP or e1-e2 or all)]")}
+if (length(args)>5){stop("Rscript PlotIn2D.R [Prefix] [LRT] [ConcatenatedFile] [WhichMode (BP or e1-e2 or all)] [eventIDs]")}
+
+if (length(args)==4){eventIDs=NULL}
+if (length(args)==5){
+    eventIDs=args[5]
+    evIDs <- read.table(eventIDs, header=F, stringsAsFactors=F, colClasses='character')
+}
 
 allowedModels <- c("i", "a", "b", "l", "I", "A", "B", "L")
 
@@ -93,12 +99,14 @@ myPrefix <- args[1]
 myEpocsOutput.LRT <- args[2]
 myEpocsOutput.Conc <- args[3]
 myChoice <- args[4]
+
 fl.m <- 0
 fl.c <- 0
 
 myTable.LRT <- read.table(myEpocsOutput.LRT, header=T, stringsAsFactors=F, sep="\t", check.names=F)
 myTable.Conc <- read.table(myEpocsOutput.Conc, header=T, stringsAsFactors=F, sep="\t", check.names=F)
 myTable.LRT$LRT2 <- rep(NA, nrow(myTable.LRT))
+
 
 # some sanity checks
 if (length(which(!(myTable.LRT$Model1 %in% allowedModels)))>0){stop()}
@@ -212,7 +220,13 @@ if ((length(which(uppercaseModels == 1)) == 0) && (length(which(lowercaseModels 
         par(mfrow=c(3,3))
         for (i in 1:length(uniquePairs)){
             spl.pairs <- strsplit(uniquePairs[i], split="_")[[1]]
-            main.name <- paste(c("event ", spl.pairs[1], " vs event ", spl.pairs[2]), sep="", collapse="")
+            n1 <- spl.pairs[1]
+            n2 <- spl.pairs[2]
+            if (!(is.null(eventIDs))){
+                n1 <- evIDs[n1,]
+                n2 <- evIDs[n2,]
+            }
+            main.name <- paste(c("event ", n1, " vs event ", n2), sep="", collapse="")
             sub.normTable <- myNormTable[myNormTable$n  ==  uniquePairs[i],]
             sub.lrtTable <- myTable.LRT[which(myTable.LRT$Event1  ==  spl.pairs[1] & myTable.LRT$Event2  ==  spl.pairs[2]),]
             vectorOfXLabels <- c("H0")
@@ -269,9 +283,16 @@ if ((length(which(uppercaseModels == 1))>0) && (length(which(lowercaseModels == 
         par(mfrow=c(3,3))
         for (i in 1:length(uniquePairs)){
             spl.pairs <- strsplit(uniquePairs[i], split="_")[[1]]
-            main.name <- paste(c("event ", spl.pairs[1], " vs event ", spl.pairs[2]), sep="", collapse="")
+            n1 <- spl.pairs[1]
+            n2 <- spl.pairs[2]
+            if (!(is.null(eventIDs))){
+                n1 <- evIDs[n1,]
+                n2 <- evIDs[n2,]
+            }
+            main.name <- paste(c("event ", n1, " vs event ", n2), sep="", collapse="")
             sub.normTable <- myNormTable[myNormTable$n  ==  uniquePairs[i],]
             sub.lrtTable <- myTable.LRT[which(myTable.LRT$Event1  ==  spl.pairs[1] & myTable.LRT$Event2  ==  spl.pairs[2]),]
+
             vectorOfXLabels <- c("H0")
             for (k in 1:nrow(sub.normTable)){
                 vectorOfXLabels <- c(vectorOfXLabels, listForXLabels[[sub.normTable[k,]$m]])

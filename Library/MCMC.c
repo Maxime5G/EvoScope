@@ -94,7 +94,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
 
     indices = calloc(MyEpocsData[0].theTVector.nbfork, sizeof(int));    // storing the indices of the transitions in the tvector
     for (i=0; i<MyEpocsData[0].nbranches; i++){                         // useful to show all transitions in summary form
-        if ((int)tvector[i] > 2){                                       // whenever there is a co-occurrence
+        if ((int)tvector[i] > 2 && (int)tvector[i]<5){                  // whenever there is a co-occurrence (i.e., 3 or 4 in the tvector)
             tvectortoshow[which_cooc]='3';                              // setting it (for starters) to 3
             tvector[i]=(char)3;                                         // (i.e., all co-occurrences are in the direction e1->e2)
             indices[which_cooc++]=i;
@@ -128,7 +128,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
             fprintf(stderr, "%d%%...", (k/(Nrounds/10))*10);
         }
 
-        if (k%2 == 0){
+        if (k%2 == 0 && MyEpocsData[0].theTVector.nbfork>0){
             /*
             Updating the transition vector every other round
             Basically, we flip the co-occurrence at the position which_cooc into the other direction
@@ -137,7 +137,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
             And vice-versa
             */
 
-            if ((int)tvector[indices[which_cooc]]>3){
+            if ((int)tvector[indices[which_cooc]]==4){
                 tvector[indices[which_cooc]]=3;
                 tvectortoshow[which_cooc]='3';
             }
@@ -158,7 +158,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
                 (*total_acc)++;
             }else{
                 // If not, we reset the values to their previous set
-                if ((int)tvector[indices[which_cooc]]>3){
+                if ((int)tvector[indices[which_cooc]]==4){
                     tvector[indices[which_cooc]]=3;
                     tvectortoshow[which_cooc]='3';
                 }
@@ -202,7 +202,7 @@ int MCMC2( struct CoevolData *MyEpocsData, int *IS, int Nrounds, int w, int *tot
         }
 
         if ((k%sampling)==0){
-            fprintf(fptr, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n", k, posterior, proposal[0][0], proposal[0][1], proposal[1][0], proposal[1][1], proposal[0][2], proposal[0][3], proposal[1][2], proposal[1][3], tvectortoshow);
+            fprintf(fptr, "%d\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%f\t%s\n", k, posterior, proposal[0][0], proposal[0][1], proposal[1][0], proposal[1][1], proposal[0][2], proposal[0][3], proposal[1][2], proposal[1][3], MyEpocsData[0].theTVector.nbfork>0?tvectortoshow:"NA");
         }
     }
     fprintf(stderr, "100%%]\n\n");
