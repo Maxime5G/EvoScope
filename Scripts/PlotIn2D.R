@@ -82,7 +82,7 @@ normalizeAllSubtables <- function(theTable){
     return (theNormalizedTable)
 }
 
-if (length(args)>5){stop("Rscript PlotIn2D.R [Prefix] [LRT] [ConcatenatedFile] [WhichMode (BP or e1-e2 or all)] [eventIDs]")}
+if (length(args)>5 || length(args)<2){stop("Rscript PlotIn2D.R [Prefix] [LRT] [ConcatenatedFile] [WhichMode (BP or e1-e2 or all)] [eventIDs]")}
 
 if (length(args)==4){eventIDs=NULL}
 if (length(args)==5){

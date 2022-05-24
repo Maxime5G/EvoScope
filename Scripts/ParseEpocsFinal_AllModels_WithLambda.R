@@ -12,7 +12,7 @@ args=commandArgs(trailingOnly=TRUE)
 # Then comparing the value to the appropriate chi-square distribution (df = diff in parameters between both models)
 # Also formatting it nicely for the output table
 
-pairwiseChiSquareAndFormat <- function(subtable, paramTable, outTable)
+pairwiseChiSquareAndFormat <- function(subtable, paramTable, possiblePairs, outTable)
 {
 	seqResult <- c()
 	pvalueResults <- c()
@@ -25,8 +25,10 @@ pairwiseChiSquareAndFormat <- function(subtable, paramTable, outTable)
 			criticalValue <- 2 * (subtable[j,]$lnML - subtable[i,]$lnML)
 			m1 <- subtable[i,]$Model
 			m2 <- subtable[j,]$Model
+			combOfModels <- paste(c(m1, m2), sep='', collapse='')
 			numbOfDF <- paramTable[names(paramTable)==m2]-paramTable[names(paramTable)==m1]
-			if (numbOfDF>=1){
+			# if (numbOfDF>=1){
+			if (combOfModels %in% possiblePairs){
 
 				pValue <- format(pchisq(criticalValue, df=numbOfDF, lower.tail=FALSE), scientific=TRUE, digits=4)
 
@@ -53,6 +55,7 @@ pairwiseChiSquareAndFormat <- function(subtable, paramTable, outTable)
 		vecOfDF <- c(vecOfDF, degreeOfFreedoms[as.character(tmpTable[i,4]), as.character(tmpTable[i,3])])
 	}
 	tmpTable$df <- vecOfDF
+	# print(tmpTable)
 
 	outTable <- rbind.data.frame(outTable, tmpTable)
 	return(outTable)
@@ -90,6 +93,7 @@ extractTheBest2 <- function(mySubtable, paramTable){
 			m22 <- paramTable[names(paramTable)==l2$Model2]
 
 			if (df2-df1 == 0){
+				# print("here1")
 				# There are two possibilities so far:
 				# - either we have ia/ib vs al/bl
 				# - either we have ia/ib vs ib/ia
@@ -159,15 +163,18 @@ if (!(is.na(EvIds))){myEventsIds <- tibble (read.table(EvIds, header=F, stringsA
 
 # To evaluate if I have to run the script from inside the folder ('.' in myFolder variable)
 condition <- FALSE
-basename <- NA
 
 nullHypothesisModel <- 'i'
+
+# allPossibleCombinationsWith8Models <- c('iI', 'ia', 'ib', 'il', 'al', 'bl', 'IA', 'IB', 'IL', 'AL', 'BL')
+allPossibleCombinationsWith8Models <- c('iI', 'ia', 'ib', 'il', 'al', 'bl', 'IA', 'IB', 'IL', 'AL', 'BL', 'bB', 'aA', 'lL')
 
 # If the user wants to run in current directory: need to adjust a bit the variable to account for it
 if (myFolder == '.')
 {
 	myFolder=getwd()
 	myOutputPrefix=tail(strsplit(myFolder, split='/')[[1]], n=1)
+	basename=myOutputPrefix
 	myPrefix=paste(c(myOutputPrefix, '_mat_epocs'), sep='', collapse='')
 	condition=TRUE
 }else{
@@ -244,7 +251,8 @@ for (k in seq(1,nrow(df), numbEntriesPerPair))
 
     # And now I'm doing the chi-square analysis (see function above)
 	# Adds automatically the lines to the matResult object
-    matResult <- pairwiseChiSquareAndFormat(subtable, numParamAllModels, matResult)
+
+    matResult <- pairwiseChiSquareAndFormat(subtable, numParamAllModels, allPossibleCombinationsWith8Models, matResult)
 
 	# I'm extracting, for the first run, the number of comparisons performed.
 	# This should work fine if the models in the epocs folder are correctly selected
@@ -252,6 +260,10 @@ for (k in seq(1,nrow(df), numbEntriesPerPair))
 
 	# Extracting the best LRT for the pair considered - need to subset the full table
     test.subtable <- matResult[seq(count,count+countComparisons-1),] %>% filter(Pvalue < 0.05) %>% filter(df>0) %>% group_by(df)
+
+	if ('iI' %in% test.subtable$combinedModels && test.subtable[which(test.subtable$combinedModels == 'iI'),]$Pvalue < 0.05){
+		test.subtable <- test.subtable[c(which(test.subtable$Model1 %in% c('I','A','B','L')), which(test.subtable$combinedModels == 'iI')),]
+	}
 
 	# Retrieving the "best" pair
     myLRT <- extractTheBest2(test.subtable, numParamAllModels)
@@ -264,27 +276,6 @@ for (k in seq(1,nrow(df), numbEntriesPerPair))
     }
 
 	count <- count+countComparisons
-}
-
-if(is.null(matBestModel)){
-	# 1. Table of all LRTs
-	outputTable <- paste(myFolder, '/', basename, '_LRT.tab', sep='', collapse='')
-	if (condition){outputTable <- paste(myOutputPrefix, '_LRT.tab', sep='', collapse='')}
-	write.table(matResult, outputTable, sep='\t', quote=FALSE, col.names=TRUE, row.names=FALSE)
-
-	# 2. Concatenated results (i.e., all pairs within the same table)
-	outputTable2 <- paste(myFolder, '/', basename, '_ConcatenatedResults.tab', sep='', collapse='')
-	if (condition){outputTable2 <- paste(myOutputPrefix, '_ConcatenatedResults.tab', sep='', collapse='')}
-	write.table(df, outputTable2, sep='\t', quote=FALSE, col.names=TRUE, row.names=FALSE)
-
-	# 3. The best model table (i.e., for each pair, which model explains better the data observed)
-	outputTable3 <- paste(myFolder, '/', basename, '_BestModel.tab', sep='', collapse='')
-	if (condition){outputTable3 <- paste(myOutputPrefix, '_BestModel.tab', sep='', collapse='')}
-	fileConn <- file(outputTable3)
-	writeLines(c("No significant pairs found!"), fileConn)
-	close(fileConn)
-
-	stop('Could not find any significant events! exiting...')
 }
 
 # Adding the trait ids (when provided)
@@ -304,6 +295,7 @@ lambda1 <- c()
 lambda2 <- c()
 
 for (i in 1:nrow(matBestModel)){
+# for (i in 1:5){
 	entryInDf <- df[which(df$Event1 == matBestModel[i,]$Event1 & df$Event2 == matBestModel[i,]$Event2 & df$Model == matBestModel[i,]$Model2),]
 	lambda1 <- c(lambda1, entryInDf$mu1star/entryInDf$mu1)
 	lambda2 <- c(lambda2, entryInDf$mu2star/entryInDf$mu2)

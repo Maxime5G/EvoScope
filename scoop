@@ -281,10 +281,10 @@ rscript2_wrapper(){
 
     # # Verbose
     # printf 'Retrieving the best model from epocs\n'
-    printf 'Command: Rscript '$scriptdir'/Scripts/ParseEpocsFinal_WithLambda.R '$epoicsOutput' '$eventID'\n\n' >> $cmdlines
+    printf 'Command: Rscript '$scriptdir'/Scripts/ParseEpocsFinal_AllModels_WithLambda.R '$epoicsOutput' '$eventID'\n\n' >> $cmdlines
 
     # Actual command
-    Rscript $scriptdir/Scripts/ParseEpocsFinal_WithLambda.R $epoicsOutput $eventID
+    Rscript $scriptdir/Scripts/ParseEpocsFinal_AllModels_WithLambda.R $epoicsOutput $eventID
 }
 
 plot_wrapper(){
@@ -293,8 +293,8 @@ plot_wrapper(){
 
     epocsLRT=$epoicsOutput/$basenameepicsfile"_LRT.tab"
     epocsConc=$epoicsOutput/$basenameepicsfile"_ConcatenatedResults.tab"
-    printf 'Command: Rscript '$scriptdir'/Scripts/PlotIn2D.R '$epoicsOutput' '$epocsLRT' '$epocsConc' all\n\n' >> $cmdlines
-    Rscript $scriptdir/Scripts/PlotIn2D.R $epoicsOutput $epocsLRT $epocsConc all
+    printf 'Command: Rscript '$scriptdir'/Scripts/PlotIn2D.R '$epoicsOutput' '$epocsLRT' '$epocsConc' all '$eventID'\n\n' >> $cmdlines
+    Rscript $scriptdir/Scripts/PlotIn2D.R $epoicsOutput $epocsLRT $epocsConc all $eventID
 
 
     # --- OUTPUT 2: CYTOSCAPE ---

@@ -75,36 +75,22 @@ if ((length(args) < 6) & (length(args) > 3)){
 
   for (i in 1:nrow(theTree$edge)){
 
-      name1 <- allIDsInTheTree[theTree$edge[i,1]]
-      name2 <- allIDsInTheTree[theTree$edge[i,2]]
+        name1 <- allIDsInTheTree[theTree$edge[i,1]]
+        name2 <- allIDsInTheTree[theTree$edge[i,2]]
+        # print(paste(c(name1, name2), sep='', collapse=' '))
 
-      vec1 <- unlist(c(modifMat[modifMat$tip == name1,seq(2,ncol(out_table))]))
-      vec2 <- unlist(c(modifMat[modifMat$tip == name2,seq(2,ncol(out_table))]))
+        vec1 <- unlist(c(modifMat[modifMat$tip == name1,seq(2,ncol(out_table))]))
+        vec2 <- unlist(c(modifMat[modifMat$tip == name2,seq(2,ncol(out_table))]))
 
-      if (is.numeric(vec1) & is.numeric(vec2)){
-          resVector <- as.numeric(vec2)-as.numeric(vec1)
-      }
-      else{resVector <- as.numeric(vec2!=vec1)}
+        resVector <- as.numeric(vec2!=vec1)
 
-      if (mask==1){
-          ind_pos <- which(resVector>0)
-          ind_neg <- which(resVector<0)
-          resVector[ind_pos]=0
-          resVector[ind_neg]=1
-
-      }
-      if (mask==2){
-          ind_neg <- which(resVector<0)
-          resVector[ind_neg]=0
-      }
-
-      if (mask==0){
-
-          ind_neg <- which(resVector<0)
-          # ind_neg <- ind_neg[ind_neg>1]
-          resVector[ind_neg]=1
-      }
-      out_table[out_table$tip == allIDsInTheTree[theTree$edge[i,2]],seq(2,ncol(out_table))] <- resVector
+        if (-1 %in% vec1){
+            resVector[which(vec1 <0) ] <- -1
+        }
+        if (-1 %in% vec2){
+            resVector[which(vec2 <0) ] <- -1
+        }
+        out_table[out_table$tip == allIDsInTheTree[theTree$edge[i,2]],seq(2,ncol(out_table))] <- resVector
 
   }
 
