@@ -6,7 +6,7 @@
 
 To compile epics, epocs and epocs_mcmc, no modules are needed. Simply type `make`, which will build the three executables.
 
-To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse` and `ape` installed as packages. These tools can be installed with conda (ref).
+To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse` and `ape` installed as packages. These tools can be installed with bioconda.
 
 ## Usage
 
