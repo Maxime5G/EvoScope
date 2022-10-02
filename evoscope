@@ -13,7 +13,7 @@
 
 help() {
     cat << EOF
-Usage: ./scoop [options]
+Usage: ./evoscope [options]
 Options:
     -t [FILENAME]: tab-delimited file of traits at the leaves [mandatory]
     -T [TREEFILE]: Phylogenetic tree in newick format [mandatory]
