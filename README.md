@@ -6,34 +6,34 @@
 
 To compile epics, epocs and epocs_mcmc, no modules are needed. Simply type `make`, which will build the three executables.
 
-To be able to use scoop, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse` and `ape` installed as packages. These tools can be installed with conda (ref).
+To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse` and `ape` installed as packages. These tools can be installed with conda (ref).
 
 ## Usage
 
-The details on how to use each separate tools, as well as the whole pipeline encapsulated in `scoop`, are presented hereafter.
+The details on how to use each separate tools, as well as the whole pipeline encapsulated in `evo-scope`, are presented hereafter.
 
-### Scoop
+### evo-scope
 
-`Scoop` works as a 5-step pipeline, combining the specificities of two of our previous tools, `epics` and `epocs`.
+`evo-scope` works as a 5-step pipeline, combining the specificities of two of our previous tools, `epics` and `epocs`.
 
 The only inputs required are a rooted phylogenetic tree and a tab-delimited file with discrete traits at the tips. The tip IDs need to correspond to the tips in the tree.
 
-The first step is an ancestral character reconstruction performed by `pastml` with default parameters and the `JOINT` method (ref).
+The first step is an ancestral character reconstruction performed by `pastml` with default parameters and the `JOINT` method (see the [github repository](https://github.com/evolbioinfo/pastml) and the [reference paper](https://academic.oup.com/mbe/article/36/9/2069/5498561?login=false)).
 
-The second step in `scoop` reconstructs the mutations on the branches of the tree with a tailored Rscript `AnnotateATree_WithMasks_Clean.R`. Indeed, `epics` and `epocs` require as input a rooted phylogenetic tree with mutations formatted between square brackets and located at the bootstrap values in the newick string for internal branches (e.g., `)[0/1/0/1/1]`) or after the tip ids (e.g., `SPECIES1[0/0/0/1/1/1]`).
+The second step in `evo-scope` reconstructs the mutations on the branches of the tree with a tailored Rscript `AnnotateATree_WithMasks_Clean.R`. Indeed, `epics` and `epocs` require as input a rooted phylogenetic tree with mutations formatted between square brackets and located at the bootstrap values in the newick string for internal branches (e.g., `)[0/1/0/1/1]`) or after the tip ids (e.g., `SPECIES1[0/0/0/1/1/1]`).
 
-Next, `epics` is run with the identity matrix (ref) to identify pairs of significantly co-occurring mutations within the tree. In `scoop`, epics works as a pre-filter to collect quickly evidence of correlated evolution, as the calculations allows it. We keep pairs that are significantly associated with a p-value < 0.05.
+Next, `epics` is run with the identity matrix (see the [epics paper](https://academic.oup.com/sysbio/article/65/5/812/2223542)) to identify pairs of significantly co-occurring mutations within the tree. In `evo-scope`, epics works as a pre-filter to collect quickly evidence of correlated evolution, as the calculation speed allows it. We keep pairs that are significantly associated with a p-value < 0.05.
 
-Following this step, we feed in `epocs` the significant pairs from the previous step to have an idea about the induction scenarios that describe the associations. We run four models within `epocs`, one of independence and three of dependence. The dependence models selected reflect either an induction of the first trait on the second one, vice-versa or reciprocal induction.
+Following this step, we feed in `epocs` the significant pairs from the previous step to have an idea about the induction scenarios that describe the associations. We run four models within `epocs`, one of independence and three of dependence (see also the [epocs paper](https://doi.org/10.1093/sysbio/syab092)). The dependence models selected reflect either an induction of the first trait on the second one, vice-versa or reciprocal induction.
 
-Finally, `scoop` uses a tailored R script `ParseEpocsFinal_WithLambda.R` to retrieve the results of all four runs of the previous steps. `Scoop` then calculates the likelihood ratio tests between the encapsulated models of dependence and independence. The final output consists of three files: one `[prefix]_BestModel.tab` where for each pair whose LRT is significant, the best model is presented based on the LRT values; `[prefix]_LRT.tab` summarizing all LRT tests performed; `[prefix]_ConcatenatedResults.tab` containing the results of all runs of `epocs`.
+Finally, `evo-scope` uses a tailored R script `ParseEpocsFinal_WithLambda.R` to retrieve the results of all four runs of the previous steps. `evo-scope` then calculates the likelihood ratio tests between the encapsulated models of dependence and independence. The final output consists of three files: one `[prefix]_BestModel.tab` where for each pair whose LRT is significant, the best model is presented based on the LRT values; `[prefix]_LRT.tab` summarizing all LRT tests performed; `[prefix]_ConcatenatedResults.tab` containing the results of all runs of `epocs`.
 
 The entire pipeline is fully automated and do not require any manual inputs.
 
-Some options are available to tweak `scoop`, available after typing `./scoop -h`:
+Some options are available to tweak `evo-scope`, available after typing `./evoscope -h`:
 
 ```
-Usage: ./scoop [options]
+Usage: ./evoscope [options]
 Options:
     -t [FILENAME]: tab-delimited file of traits at the leaves [mandatory]
     -T [TREEFILE]: Phylogenetic tree in newick format [mandatory]
@@ -49,11 +49,11 @@ Options:
 
 ### Separate tools
 
-Any of the tools and scripts are usable outside of scoop. Arguments and usage are detailed hereafter.
+Any of the tools and scripts are usable outside of evo-scope. Arguments and usage are detailed hereafter.
 
 #### Epics
 
-Epics calculates very quickly a p-value describing the statistical association between pair of mutations placed on a rooted phylogenetic tree. Depending on the matrix choice, the user can either test whether pairs are statistically co-occurring or are genealogically ordered in the tree. We refer the user to the original paper (Behdenna2016) for details on the implementation.
+Epics calculates very quickly a p-value describing the statistical association between pair of mutations placed on a rooted phylogenetic tree. Depending on the matrix choice, the user can either test whether pairs are statistically co-occurring or are genealogically ordered in the tree. We refer the user to the [original paper](https://academic.oup.com/sysbio/article/65/5/812/2223542) for details on the implementation.
 
 type `./epics -h` to see the help and the main commands.
 
@@ -101,7 +101,7 @@ Epics outputs two files of the form `[prefix]_mat_epics_[matrix].tab` and `[pref
 
 ### Epocs
 
-Epocs maximizes the likelihood of independence and dependence models, with at most eight parameters. For details on the implementation and modelling, we refer the user to the paper (Behdenna2021). The standard approach is to run epocs multiple times on different models, calculate likelihood ratio tests between encapsulated models and retrieve the model whose LRT is maximized while minimizing the number of parameters.
+Epocs maximizes the likelihood of independence and dependence models, with at most eight parameters. For details on the implementation and modelling, we refer the user to [the paper](https://doi.org/10.1093/sysbio/syab092). The standard approach is to run epocs multiple times on different models, then calculate the likelihood ratio tests between nested models and retrieve the model whose LRT is maximized while minimizing the number of parameters.
 
 type `./epocs -h` to see the help and the main commands.
 
@@ -183,7 +183,7 @@ As output, epocs_mcmc writes a file of the form `[prefix]_epocs_mcmc.tab` contai
 
 ### Epics and epocs
 
-You can try epics and epocs on a test tree provided in TestData. The tree contains three WC pairs (see our paper: Behdenna, Godfroid et al., 2021, BioRxiv) for which the tests should show three significant associations.
+You can try epics and epocs on a test tree provided in TestData. The tree contains three WC pairs (see the [epocs paper](https://doi.org/10.1093/sysbio/syab092) for more details on the data set) for which the tests should show two significant associations.
 
 ```
 ./epics -O WCPairEpics -T 0.05 -I "AB682439" TestData/ThreeWCPairsOutput_ACR_tree.nwk
@@ -223,12 +223,12 @@ Rscript Scripts/PlotMCMC.R epocsMCMC_1v2/epocsMCMC_1v2_epocs_mcmc.tab 1v2
 
 which will output two pdf: `[prefix]_barplot_tvector_MCMC.pdf` and `[prefix]_histogram_parameter_distribution.pdf`.
 
-### Scoop
+### evo-scope
 
-To run a full scoop analysis, you can try the test data in the TestData folder like:
+To run a full evo-scope analysis, you can try the test data in the TestData folder like:
 
 ```
-./scoop -t TestData/ThreeWCPairs_forTests.tab -T TestData/align_cured_UbyT_2_tree_rooted -f
+./evoscope -t TestData/ThreeWCPairs_forTests.tab -T TestData/align_cured_UbyT_2_tree_rooted -f
 ```
 
 Where here we want to have the full run.
@@ -247,4 +247,6 @@ Guillaume Achaz
 
 Behdenna A et al. 2016. Testing for Independence between Evolutionary Processes. Syst Biol. 65:812–823. doi: 10.1093/sysbio/syw004.
 
-Behdenna A, Godfroid M et al. 2021. A minimal yet flexible likelihood framework to assess correlated evolution. bioRxiv. 2020.09.04.282954. doi: 10.1101/2020.09.04.282954.
+Behdenna A, Godfroid M et al., 2022. A Minimal yet Flexible Likelihood Framework to Assess Correlated Evolution, Syst Biol, 71:823–838, doi: 10.1093/sysbio/syab092
+
+Ishikawa S et al., 2019. A Fast Likelihood Method to Reconstruct and Visualize Ancestral Scenarios, Mol Biol Evol, 36:2069–2085, doi:10.1093/molbev/msz131
