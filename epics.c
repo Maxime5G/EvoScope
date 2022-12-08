@@ -191,8 +191,9 @@ double ComputePval( double *distrib, int ldistrib, int obs){
 	int i;
 	double pval=0.0L;
 
-	for(i=obs;i<ldistrib; i++)
+	for(i=obs;i<ldistrib; i++){
 		pval += distrib[i];
+	}
 
 	return pval;
 }
@@ -680,6 +681,21 @@ int main( int argc , char **argv)
 			  		mymax=MaxDistrib( distrib, ldistrib  );
 
 					MyTrees[f].pvalue_of_pair=ComputePval( distrib, ldistrib, n_obs_pairs);
+
+					if (MyTrees[f].pvalue_of_pair==0.0){
+
+						double sum_distrib = 0.0L;
+
+						for (int z=0; z<ldistrib; z++){
+							sum_distrib += distrib[z];
+						}
+
+						if (sum_distrib != 1){
+							fprintf(stderr, "WARNING: for pair %d vs %d, there seems to be no observable/possible %s\n", i+1, j+1, (mat_type==0)?"co-occurences":(mat_type==1)?"chronologies":"co-occurences or chronologies");
+							fprintf(stderr, "Setting pvalue to 1.0\n");
+							MyTrees[f].pvalue_of_pair=1.0;
+						}
+					}
 
 					/*
 						Writing the results to stdout. If there is an event array, replaces the e0, e1, etc. by the ids
