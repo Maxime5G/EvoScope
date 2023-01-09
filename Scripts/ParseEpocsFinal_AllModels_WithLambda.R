@@ -93,7 +93,6 @@ extractTheBest2 <- function(mySubtable, paramTable){
 			m22 <- paramTable[names(paramTable)==l2$Model2]
 
 			if (df2-df1 == 0){
-				# print("here1")
 				# There are two possibilities so far:
 				# - either we have ia/ib vs al/bl
 				# - either we have ia/ib vs ib/ia
@@ -166,7 +165,6 @@ condition <- FALSE
 
 nullHypothesisModel <- 'i'
 
-# allPossibleCombinationsWith8Models <- c('iI', 'ia', 'ib', 'il', 'al', 'bl', 'IA', 'IB', 'IL', 'AL', 'BL')
 allPossibleCombinationsWith8Models <- c('iI', 'ia', 'ib', 'il', 'al', 'bl', 'IA', 'IB', 'IL', 'AL', 'BL', 'bB', 'aA', 'lL')
 
 # If the user wants to run in current directory: need to adjust a bit the variable to account for it
@@ -223,8 +221,6 @@ numbEntriesPerPair <- length(inputModels)
 # Number of pairwise comparisons possible - needed for the dimensions of the output table
 # countComparisons <- (numbEntriesPerPair*(numbEntriesPerPair-1))/2
 
-### TEMPORARY - PAY ATTENTION!!!! - for now it is sufficient
-# countComparisons <- 5
 countComparisons <- NA
 
 matResult <- data.frame(Event1=integer(), Event2=integer(), Model1=character(), Model2=character(), LRT=numeric(), Pvalue=numeric(),combinedModels=character(), df=numeric())
@@ -278,6 +274,26 @@ for (k in seq(1,nrow(df), numbEntriesPerPair))
 	count <- count+countComparisons
 }
 
+if (is.null(matBestModel)){
+	# 1. Table of all LRTs
+	outputTable <- paste(myFolder, '/', basename, '_LRT.tab', sep='', collapse='')
+	if (condition){outputTable <- paste(myOutputPrefix, '_LRT.tab', sep='', collapse='')}
+	write.table(matResult, outputTable, sep='\t', quote=FALSE, col.names=TRUE, row.names=FALSE)
+
+	# 2. Concatenated results (i.e., all pairs within the same table)
+	outputTable2 <- paste(myFolder, '/', basename, '_ConcatenatedResults.tab', sep='', collapse='')
+	if (condition){outputTable2 <- paste(myOutputPrefix, '_ConcatenatedResults.tab', sep='', collapse='')}
+	write.table(df, outputTable2, sep='\t', quote=FALSE, col.names=TRUE, row.names=FALSE)
+
+	# 3. Warning
+	print("No significant events found!")
+	text_message = sprintf("Result files %s and %s are written in the output directory", outputTable, outputTable2)
+	print(text_message)
+	print("Exiting...")
+
+	quit()
+}
+
 # Adding the trait ids (when provided)
 if (!(is.na(EvIds))){
 	e1 <- myEventsIds[as.numeric(matBestModel$Event1),]$V1
@@ -290,12 +306,10 @@ if (!(is.na(EvIds))){
 matBestModel$logPVAL <- -log10(matBestModel$Pvalue)
 
 # Adding the lambda's
-
 lambda1 <- c()
 lambda2 <- c()
 
 for (i in 1:nrow(matBestModel)){
-# for (i in 1:5){
 	entryInDf <- df[which(df$Event1 == matBestModel[i,]$Event1 & df$Event2 == matBestModel[i,]$Event2 & df$Model == matBestModel[i,]$Model2),]
 	lambda1 <- c(lambda1, entryInDf$mu1star/entryInDf$mu1)
 	lambda2 <- c(lambda2, entryInDf$mu2star/entryInDf$mu2)
