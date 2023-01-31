@@ -654,8 +654,9 @@ int main( int argc , char **argv)
 			  		*/
 					ldistrib = n1*n2+1;
 					Init_veck_distrib( nclasses, &nclassmax, &nveck, ldistrib,  &max_ldistrib, &distrib );
+
 					/*
-						generate the distributions
+						Generation of the distributions
 					*/
 
 					/* Calculating the multinomial dimension: weak composition of n into k parts	*/
@@ -664,12 +665,11 @@ int main( int argc , char **argv)
 					/* If the dimension is too big, we can't finish the multinomial -> no convergence!	*/
 					/* Therefore, we use an approached multinomial, kind of like a MCMC approach	*/
 					/* Afterwards we need to normalize the vector to sum to 1	*/
-					if (dimension>10000000){
+					if (dimension>50000000){
 						generate_approached_multinomial(nveck, nbranch_lengths, nclasses, nn2, nn2, 0, distrib, ne1M, 0.0L, 0.0L);
 						normalize_a_vector(distrib,ldistrib);
-
 					}
-					if (dimension<=10000000){
+					if (dimension<=50000000){
 						generate_multinomial(nveck, nbranch_lengths, nclasses, nn2, nn2, 0, distrib, ne1M, 0.0L, 0.0L);
 					}
 

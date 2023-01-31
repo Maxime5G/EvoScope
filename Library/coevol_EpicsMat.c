@@ -1058,5 +1058,10 @@ void generate_approached_multinomial(int *veck, double *vproba, int lveck, int s
         free(storedVectors[j]);
     }
     free(storedVectors);
+
+    // If I have an approached multinomial, I need to set the veck entries to 0
+    // Otherwise it screws with other pairs afterwards
+    for (int j=0; j<lveck; j++)
+        veck[j] = 0;
     return;
 }
