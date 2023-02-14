@@ -52,40 +52,6 @@ double probaMoreThanOneEvent(double k, double m){
 	return (1-exp(-(m*k))-(m*k)*exp(-(m*k)));
 }
 
-/* preparing functions for MCMC */
-
-// double exponential_prior(double n, double l){
-//     /* generates the corresponding value from an exponential distribution with value n and lambda l */
-//     return (l * exp(-l*n));
-// }
-
-//  f(x) = 1/(sqrt(2 pi) sigma) e^-((x - mu)^2/(2 sigma^2))
-// double normal_prior(double sigma, double mu, double n){
-//     /* generates the corresponding value from a normal distribution with mean mu and sd sigma */
-//
-//     return ( (1/(sqrt(2*M_PI) * sigma)) * (exp(-(pow(n-mu, 2) / (2* pow(sigma,2))))) );
-// }
-
-// int randNum = rand()%(max-min + 1) + min;
-// float float_rand( float min, float max )
-// {
-//     float scale = rand() / (float) RAND_MAX; /* [0, 1.0] */
-//     return min + scale * ( max - min );      /* [min, max] */
-// }
-// double sample_number(double min, double max){
-//     double rand_number = rand() / (double)RAND_MAX;
-//     return min + rand_number * (max-min);
-// }
-//
-// int acceptance(){
-//
-// }
-//
-// int summary(){
-//
-// }
-
-
 /* -----------------------------------------------------------------	*/
 void PrintHelp(char *s)
 {
