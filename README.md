@@ -6,7 +6,9 @@
 
 To compile epics, epocs and epocs_mcmc, no modules are needed. Simply type `make`, which will build the three executables.
 
-To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse` and `ape` installed as packages. These tools can be installed with bioconda.
+To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse`, `gplots` and `ape` installed as packages. These tools can be installed with bioconda.
+
+WARNING: There is a bug in pastml with pandas versions >= 2.0.0. You might need to downgrade pandas to version 1.5.3.
 
 ## Usage
 
@@ -248,5 +250,7 @@ Guillaume Achaz
 Behdenna A et al. 2016. Testing for Independence between Evolutionary Processes. Syst Biol. 65:812–823. doi: 10.1093/sysbio/syw004.
 
 Behdenna A, Godfroid M et al., 2022. A Minimal yet Flexible Likelihood Framework to Assess Correlated Evolution, Syst Biol, 71:823–838, doi: 10.1093/sysbio/syab092
+
+Godfroid, M et al., 2022. Evo-Scope: Fully automated assessment of correlated evolution on phylogenetic trees, bioRxiv, 2022.12.08.519595; doi: https://doi.org/10.1101/2022.12.08.519595 
 
 Ishikawa S et al., 2019. A Fast Likelihood Method to Reconstruct and Visualize Ancestral Scenarios, Mol Biol Evol, 36:2069–2085, doi:10.1093/molbev/msz131
