@@ -77,7 +77,7 @@ full=0
 plot=0
 gwas=0
 statedep=0
-scriptdir=`dirname "$0"`
+scriptdir=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 epicsmatrix="I" # Matrix of chronology - by default is identity
 
 while getopts t:T:O:o:m:gfphs opt; do
