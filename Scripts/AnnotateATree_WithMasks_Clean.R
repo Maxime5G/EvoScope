@@ -22,7 +22,7 @@ if ((length(args) < 6) & (length(args) > 3)){
       # if (!(mask %in% c(1,2))){stop('Error: Please input either 1 or 2 for the mask! Exiting...')}
       if (!(mask %in% c(1,2))){
           mask <- 0
-          eventOrderFile <- read.table(args[5])
+          eventOrderFile <- read.csv(args[5])
           eventOrder <- eventOrderFile$V1
           if (nrow(eventOrderFile)==0){stop('Error: Please input a correct event ID file! Exiting...')}
       }
