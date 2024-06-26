@@ -10,6 +10,18 @@ To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and
 
 WARNING: There is a bug in pastml with pandas versions >= 2.0.0. You might need to downgrade pandas to version 1.5.3.
 
+### Conda environment
+
+For conda users, a requirements file containing all required packages is provided (requirements.txt). Therefore, to install all dependencies besides epics, epocs and epocs_mcmc, here are the steps:
+
+```
+conda create -n evoscope --file requirements.txt
+conda activate evoscope
+pip install pastml==1.9.40
+```
+
+Note that these packages are useful for the Ancestral Character Reconstruction step and the final step, and are not required for running `epics`, `epocs` or `epocs_mcmc` independently.
+
 ## Usage
 
 The details on how to use each separate tools, as well as the whole pipeline encapsulated in `evo-scope`, are presented hereafter.
