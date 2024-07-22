@@ -4,11 +4,18 @@
 
 ## Installation
 
-To compile epics, epocs and epocs_mcmc, no modules are needed. Simply type `make`, which will build the three executables.
+To compile epics, epocs and epocs_mcmc, no modules are needed. 
+After cloning the repository locally, typing `make`, which will build the three executables, e.g.:
 
-To be able to use evo-scope, you require `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse`, `gplots` and `ape` installed as packages. These tools can be installed with bioconda.
+```
+git clone https://github.com/Maxime5G/EvoScope
+cd EvoScope
+make
+```
 
-WARNING: There is a bug in pastml with pandas versions >= 2.0.0. You might need to downgrade pandas to version 1.5.3.
+To be able to execute the entire evo-scope workflow, the required dependencie are `pastml` > v1.9.3, `epics`, `epocs` and `R` > v4.0.0 with `tidyverse`, `gplots` and `ape` installed as packages. These tools can be installed with bioconda (see following section).
+
+WARNING: There is a bug in pastml with pandas versions >= 2.0.0. You'll need to downgrade pandas to version 1.5.3.
 
 ### Conda environment
 
